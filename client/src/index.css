@@ -1,3 +1,28 @@
 @import "tailwindcss";
 
 /* You can add your custom styles below */
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #242a47;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a4161;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a526f;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a4161 #242a47;
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const sidebarLinks = [
 	{
@@ -17,7 +17,7 @@ const sidebarLinks = [
 			</svg>
 		),
 		match: (pathname: string) => pathname === "/",
-		gradient: "bg-gradient-to-tl from-[#15803d] via-[#115e59] to-[#164e63]",
+		gradient: "bg-[#1E293B]",
 	},
 	{
 		to: "/orders",
@@ -34,7 +34,8 @@ const sidebarLinks = [
 			</svg>
 		),
 		match: (pathname: string) => pathname.startsWith("/orders"),
-		gradient: "bg-gradient-to-r from-[#d1d5db] via-[#6b7280] to-[#374151]",
+		gradient: "bg-[#1E293B]",
+
 	},
 	{
 		to: "/products",
@@ -45,13 +46,13 @@ const sidebarLinks = [
 				width="24px"
 				height="24px"
 				fill="currentColor"
-				viewBox="0 0 256 256"
+				viewBox="0 0 24 24"
 			>
-				<path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,176H48V48H208V208Z"></path>
+				<path d="M21.41 7.41l-8-6a2 2 0 0 0-2.82 0l-8 6A2 2 0 0 0 2 9.13V20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9.13a2 2 0 0 0-.59-1.72zM12 4.15L18.74 9H5.26zm8 15.85H4V9.87l8 6 8-6z" />
 			</svg>
 		),
 		match: (pathname: string) => pathname.startsWith("/products"),
-		gradient: "bg-gradient-to-br from-[#f59e0b] via-[#ea580c] to-[#b91c1c]",
+		gradient: "bg-[#1E293B]",
 	},
 	{
 		to: "/customers",
@@ -64,11 +65,11 @@ const sidebarLinks = [
 				fill="currentColor"
 				viewBox="0 0 256 256"
 			>
-				<path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"></path>
+				<path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"></path>
 			</svg>
 		),
 		match: (pathname: string) => pathname.startsWith("/customers"),
-		gradient: "bg-gradient-to-t from-[#4c0033] via-[#790252] to-[#af0171]",
+		gradient: "bg-[#1E293B]",
 	},
 	{
 		to: "/discounts",
@@ -85,7 +86,7 @@ const sidebarLinks = [
 			</svg>
 		),
 		match: (pathname: string) => pathname.startsWith("/discounts"),
-		gradient: "bg-gradient-to-tl from-[#ffcc1d] via-[#0b4619] to-[#116530]",
+		gradient: "bg-[#1E293B]",
 	},
 	{
 		to: "/analytics",
@@ -102,44 +103,75 @@ const sidebarLinks = [
 			</svg>
 		),
 		match: (pathname: string) => pathname.startsWith("/analytics"),
-		gradient: "from-cyan-500 to-blue-600",
+		gradient: "bg-[#1E293B]",
 	},
 ];
 
 const Sidebar: React.FC = () => {
 	const location = useLocation();
+	const navigate = useNavigate();
 	const [isCollapsed, setIsCollapsed] = useState(() => {
 		const stored = localStorage.getItem("sidebar-collapsed");
 		return stored === "true";
 	});
 	const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+	const [isOnline, setIsOnline] = useState<boolean>(true);
 
 	useEffect(() => {
 		localStorage.setItem("sidebar-collapsed", isCollapsed ? "true" : "false");
 	}, [isCollapsed]);
 
+	useEffect(() => {
+		const checkStatus = async () => {
+			const token = localStorage.getItem("token");
+			try {
+				const res = await fetch("http://localhost:5000/api/auth/me", {
+					headers: { Authorization: `Bearer ${token}` },
+				});
+				setIsOnline(res.ok);
+			} catch {
+				setIsOnline(false);
+			}
+		};
+		checkStatus();
+		const interval = setInterval(checkStatus, 10000); // check every 10s
+		return () => clearInterval(interval);
+	}, []);
+
+	const handleLogout = () => {
+		localStorage.removeItem("token");
+		navigate("/login", { replace: true });
+	};
+
 	return (
 		<aside
-			className={`layout-content-container flex flex-col transition-all duration-300 ease-in-out ${
-				isCollapsed ? "w-16" : "w-16 md:w-72 lg:w-80"
-			} min-w-0`}
+			className={`layout-content-container flex flex-col transition-all duration-300 ease-in-out h-screen ${isCollapsed ? "w-16" : "w-16 md:w-72 lg:w-80"} min-w-0`}
+
 		>
-			<div className="flex h-full min-h-[500px] md:min-h-[700px] flex-col justify-between p-2 md:p-4">
+			<div className="flex flex-col p-2 md:p-4 flex-grow h-full overflow-hidden">
 				{/* Header with toggle */}
 				<div className="flex flex-col gap-2 md:gap-4">
 					<div className="flex items-center justify-between mb-2">
 						{/* Logo and Admin label */}
 						<div
-							className={`hidden md:flex items-center gap-2 transition-all duration-300 ${
-								isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
-							}`}
+							className={`hidden md:flex items-center gap-2 transition-all duration-300 ${isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
+								}`}
 							style={{
 								transitionProperty: "opacity, width",
 							}}
 						>
-                            {/* bg-gradient-to-r from-blue-500 to-purple-600 */}
-							<div className="w-8 h-8 rounded-lg flex items-center justify-center">
-								<span className="text-white font-bold text-sm">A</span>
+							{/* Admin shield icon */}
+							<div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-tr from-[#334155] to-[#64748b]">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									fill="currentColor"
+									viewBox="0 0 24 24"
+									className="text-white"
+								>
+									<path d="M12 2c-.26 0-.52.07-.74.21l-7 4.2A1.75 1.75 0 0 0 3 7.7v4.77c0 5.05 3.73 9.86 8.28 10.5.15.02.29.03.44.03s.29-.01.44-.03C17.27 22.33 21 17.52 21 12.47V7.7c0-.62-.33-1.2-.87-1.49l-7-4.2A1.75 1.75 0 0 0 12 2zm0 2.15l7 4.2v4.12c0 4.22-3.13 8.36-7 8.98-3.87-.62-7-4.76-7-8.98V8.35l7-4.2zm0 3.35a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm0 2a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1zm0 3c-2.33 0-7 1.17-7 3.5V17h14v-2.5c0-2.33-4.67-3.5-7-3.5zm-5 4c.08-.32 2.38-1.5 5-1.5s4.92 1.18 5 1.5v.5H7v-.5z" />
+								</svg>
 							</div>
 							<span className="text-white font-semibold text-lg">
 								Admin
@@ -156,131 +188,132 @@ const Sidebar: React.FC = () => {
 								height="16"
 								fill="currentColor"
 								viewBox="0 0 256 256"
-								className={`transform transition-transform ${
-									isCollapsed ? "rotate-180" : ""
-								}`}
+								className={`transform transition-transform ${isCollapsed ? "rotate-180" : ""
+									}`}
 							>
 								<path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z" />
 							</svg>
 						</button>
 					</div>
+					<div className="flex flex-col flex-grow overflow-auto">
 
-					{/* Navigation Links */}
-					<nav
-						className="flex flex-col gap-1 md:gap-2"
-						role="navigation"
-						aria-label="Main navigation"
-					>
-						{sidebarLinks.map((item) => {
-							const isActive = item.match(location.pathname);
-							return (
-								<div
-									key={item.to}
-									className="relative"
-									onMouseEnter={() => setHoveredItem(item.to)}
-									onMouseLeave={() => setHoveredItem(null)}
-								>
-									<Link
-										to={item.to}
-										className={`group relative flex items-center px-0 md:px-3 py-3 rounded-xl transition-all duration-200 transform hover:scale-105 ${
-											isCollapsed ? "justify-center" : ""
-										} ${
-											isActive
-												? `bg-gradient-to-r ${item.gradient} shadow-lg border-l-4 border-white/20`
-												: !isCollapsed
-													? "hover:bg-slate-700/20 hover:shadow-md"
-													: ""
-										}`}
-										aria-label={item.label}
-										style={{
-											background: isActive || (!isCollapsed && !isActive) ? undefined : "none",
-											boxShadow: isActive ? undefined : "none",
-										}}
+						{/* Navigation Links */}
+						<nav
+							className="flex flex-col gap-1 md:gap-2"
+							role="navigation"
+							aria-label="Main navigation"
+						>
+							{sidebarLinks.map((item) => {
+								const isActive = item.match(location.pathname);
+								const isHovered = hoveredItem === item.to;
+
+								// Base link styles
+								const baseLinkClasses = [
+									"group relative flex items-center px-3 py-3 rounded-xl transition-all duration-200",
+									isCollapsed ? "justify-center" : "",
+									isActive
+										? `bg-gradient-to-r ${item.gradient} shadow-sm border-l-4 border-white/20`
+										: !isCollapsed
+											? "hover:bg-slate-700/20 hover:shadow-sm"
+											: "",
+								].join(" ");
+
+								// Icon styles
+								const iconClasses = [
+									"flex items-center justify-center w-6 h-6 transition-colors duration-200",
+									isActive ? "text-white" : "text-slate-300 group-hover:text-white",
+								].join(" ");
+
+								// Label styles
+								const labelClasses = [
+									"hidden md:inline-block text-lg font-semibold leading-normal transition-all duration-300",
+									isCollapsed
+										? "opacity-0 max-w-0 ml-0"
+										: "opacity-100 max-w-[200px] ml-3",
+									isActive ? "text-white" : "text-slate-300 group-hover:text-white",
+									"overflow-hidden whitespace-nowrap",
+								].join(" ");
+
+								return (
+									<div
+										key={item.to}
+										className="relative"
+										onMouseEnter={() => setHoveredItem(item.to)}
+										onMouseLeave={() => setHoveredItem(null)}
 									>
-										{/* Icon box */}
-										<div
-											className={`flex items-center justify-center w-10 ${
-												isCollapsed ? "h-10" : "h-10"
-											} rounded-lg transition-all duration-200 ${
-												isActive && !isCollapsed
-													? "bg-white/10"
-													: "bg-transparent"
-											} ${isCollapsed ? "mx-auto ml-2.5" : ""}`}
-										>
-											<span
-												className={`relative z-10 flex items-center justify-center w-6 h-6 transition-colors duration-200 ${
-													isActive
-														? "text-white"
-														: "text-slate-300 group-hover:text-white"
-												}`}
-											>
-												{item.icon}
-											</span>
-										</div>
-										{/* Label with fade/slide animation */}
-										<span
-											className={`hidden md:inline-block ml-3 text-lg font-medium leading-normal transition-all duration-300
-                        ${
-							isCollapsed
-								? "opacity-0 w-0 ml-0"
-								: "opacity-100 w-auto ml-3"
-						}
-                        ${
-							isActive
-								? "text-white"
-								: "text-slate-300 group-hover:text-white"
-						}`}
-											style={{
-												maxWidth: isCollapsed ? 0 : "200px",
-												overflow: "hidden",
-												whiteSpace: "nowrap",
-												transitionProperty:
-													"opacity, max-width, margin-left",
-											}}
-										>
-											{item.label}
-										</span>
-										{/* Subtle animation indicator */}
-										{isActive && !isCollapsed && (
-											<div className="hidden md:block ml-auto">
-												<div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+										<Link to={item.to} aria-label={item.label} className={baseLinkClasses}>
+											{/* Icon */}
+											<span className={iconClasses}>{item.icon}</span>
+
+											{/* Label */}
+											<span className={labelClasses}>{item.label}</span>
+
+											{/* Active indicator */}
+											{isActive && !isCollapsed && (
+												<div className="hidden md:block ml-auto">
+													<div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+												</div>
+											)}
+										</Link>
+
+										{/* Tooltip when collapsed */}
+										{isCollapsed && isHovered && (
+											<div className="absolute left-16 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white px-2 py-1 rounded-md text-sm whitespace-nowrap z-50 opacity-95 shadow-lg border border-gray-700">
+												{item.label}
+												<div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
 											</div>
 										)}
-										{/* Glow effect for active item */}
-										{isActive && (
-											<div
-												className={`absolute inset-0 rounded-xl bg-gradient-to-r ${item.gradient} opacity-20 blur-sm pointer-events-none`}
-											></div>
-										)}
-									</Link>
-									{/* Tooltip for collapsed state */}
-									{isCollapsed && hoveredItem === item.to && (
-										<div className="absolute left-16 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white px-2 py-1 rounded-md text-sm whitespace-nowrap z-50 opacity-95 shadow-lg border border-gray-700">
-											{item.label}
-											<div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
-										</div>
-									)}
-								</div>
-							);
-						})}
-					</nav>
-				</div>
+									</div>
+								);
+							})}
+						</nav>
 
-				{/* Footer */}
-				<div className="flex flex-col gap-2">
-					<div className="h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
-					<div
-						className={`md:flex items-center gap-2 px-3 py-2 text-slate-400 text-sm transition-all duration-300 ${
-							isCollapsed
+
+					</div>
+
+					{/* Footer */}
+					<div className="flex flex-col gap-2 pt-3 mt-auto">
+						<div className="h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
+						<div
+							className={`md:flex items-center gap-2 px-3 py-2 text-slate-400 text-sm transition-all duration-300 ${isCollapsed
 								? "justify-center opacity-100 w-full"
 								: "hidden md:flex opacity-100 w-auto"
-						}`}
-						style={{
-							transitionProperty: "opacity, width",
-						}}
-					>
-						<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-						{!isCollapsed && <span>System Online</span>}
+								}`}
+							style={{
+								transitionProperty: "opacity, width",
+							}}
+						>
+							<div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isOnline ? "bg-green-500" : "bg-red-500"}`}></div>
+							{!isCollapsed && <span>{isOnline ? "System Online" : "System Offline"}</span>}
+						</div>
+						{/* Logout Button */}
+						<button
+							onClick={handleLogout}
+							className={`flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-red-900/20 transition-all duration-200 ${isCollapsed ? "justify-center w-full" : "w-full"
+								}`}
+							aria-label="Logout"
+						>
+							<span className="flex items-center justify-center">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									fill="currentColor"
+									viewBox="0 0 24 24"
+									className="text-red-400"
+								>
+									<path d="M12 2a1 1 0 0 1 1 1v10a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1zm0 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7.07-9.07a1 1 0 0 1 1.41 1.41A9 9 0 1 1 4.93 10.34a1 1 0 1 1 1.41-1.41A7 7 0 1 0 19.07 8.93z" />
+								</svg>
+							</span>
+							{!isCollapsed && <span className="text-red-400 font-medium">Logout</span>}
+						</button>
+
+						{/* Copyright */}
+						{!isCollapsed && (
+							<div className="text-xs text-slate-500 text-center mt-2">
+								© Malek {new Date().getFullYear()}
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
