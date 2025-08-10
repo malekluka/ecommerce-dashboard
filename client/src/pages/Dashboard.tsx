@@ -55,7 +55,7 @@ const Dashboard: React.FC = () => {
   }
 
   // 3. Proceed with API calls if token is valid
-  axios.get("http://localhost:5000/api/auth/me", {
+  axios.get("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then((res) => {
@@ -70,10 +70,10 @@ const Dashboard: React.FC = () => {
     });
 
     Promise.all([
-      fetch("http://localhost:5000/api/orders", {
+      fetch("https://malek-ecommerce-dashboard.up.railway.app/api/orders", {
         headers: { Authorization: `Bearer ${token}` }
       }),
-      fetch("http://localhost:5000/api/customers", {
+      fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
         headers: { Authorization: `Bearer ${token}` }
       })
     ])

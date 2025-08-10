@@ -17,7 +17,7 @@ export interface Product {
 
 export const fetchProducts = async (): Promise<Product[]> => {
   const token = localStorage.getItem('token');
-  const response = await fetch('http://localhost:5000/api/products', {
+  const response = await fetch('https://malek-ecommerce-dashboard.up.railway.app/api/products', {
     headers: { Authorization: `Bearer ${token}` }
   });
   if (!response.ok) {
@@ -28,7 +28,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
 
 export const addProduct = async (product: Product) => {
   const token = localStorage.getItem('token');
-  const response = await fetch('http://localhost:5000/api/products', {
+  const response = await fetch('https://malek-ecommerce-dashboard.up.railway.app/api/products', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

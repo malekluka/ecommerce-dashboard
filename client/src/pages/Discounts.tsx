@@ -37,7 +37,7 @@ const Discounts: React.FC = () => {
 
   const fetchDiscounts = () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:5000/api/discounts", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/discounts", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => res.json())
@@ -70,7 +70,7 @@ const Discounts: React.FC = () => {
     if (!token) {
       return;
     }
-    fetch("http://localhost:5000/api/auth/me", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -107,8 +107,8 @@ const Discounts: React.FC = () => {
     const token = localStorage.getItem("token");
     const method = editId ? 'PUT' : 'POST';
     const url = editId
-      ? `http://localhost:5000/api/discounts/${editId}`
-      : 'http://localhost:5000/api/discounts';
+      ? `https://malek-ecommerce-dashboard.up.railway.app/api/discounts/${editId}`
+      : 'https://malek-ecommerce-dashboard.up.railway.app/api/discounts';
     fetch(url, {
       method,
       headers: {
@@ -159,7 +159,7 @@ const Discounts: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/discounts/${id}`, {
+    fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/discounts/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     })

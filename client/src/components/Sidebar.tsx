@@ -125,7 +125,7 @@ const Sidebar: React.FC = () => {
 		const checkStatus = async () => {
 			const token = localStorage.getItem("token");
 			try {
-				const res = await fetch("http://localhost:5000/api/auth/me", {
+				const res = await fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
 					headers: { Authorization: `Bearer ${token}` },
 				});
 				setIsOnline(res.ok);

@@ -51,7 +51,7 @@ const Customers: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("http://localhost:5000/api/auth/me", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -70,7 +70,7 @@ const Customers: React.FC = () => {
 
   const fetchAllCustomers = () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:5000/api/customers", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -134,8 +134,8 @@ const Customers: React.FC = () => {
     const token = localStorage.getItem("token");
     const method = editId ? "PUT" : "POST";
     const url = editId
-      ? `http://localhost:5000/api/customers/${editId}`
-      : "http://localhost:5000/api/customers";
+      ? `https://malek-ecommerce-dashboard.up.railway.app/api/customers/${editId}`
+      : "https://malek-ecommerce-dashboard.up.railway.app/api/customers";
 
     // Prepare payload: omit password if editing and password is empty
     const payload = { ...form };
@@ -189,7 +189,7 @@ const Customers: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/customers/${id}`, {
+    fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/customers/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })

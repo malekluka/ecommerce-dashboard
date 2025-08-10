@@ -42,7 +42,7 @@ const Products: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("http://localhost:5000/api/auth/me", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -98,7 +98,7 @@ const Products: React.FC = () => {
     setMessage(null);
 
     const submitAction = editId
-      ? fetch(`http://localhost:5000/api/products/${editId}`, {
+      ? fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/products/${editId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -158,7 +158,7 @@ const Products: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/products/${id}`, {
+    fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/products/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })

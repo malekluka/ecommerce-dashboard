@@ -26,7 +26,7 @@ const Analytics: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("http://localhost:5000/api/auth/me", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -47,10 +47,10 @@ const Analytics: React.FC = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
         const [ordersRes, customersRes] = await Promise.all([
-          fetch("http://localhost:5000/api/orders", {
+          fetch("https://malek-ecommerce-dashboard.up.railway.app/api/orders", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:5000/api/customers", {
+          fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

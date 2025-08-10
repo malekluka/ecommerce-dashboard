@@ -86,7 +86,7 @@ const Orders: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("http://localhost:5000/api/auth/me", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
@@ -106,7 +106,7 @@ const Orders: React.FC = () => {
   const fetchAllOrders = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch("https://malek-ecommerce-dashboard.up.railway.app/api/orders", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -133,7 +133,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:5000/api/customers", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -158,7 +158,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:5000/api/discounts", {
+    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/discounts", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -264,8 +264,8 @@ const Orders: React.FC = () => {
     const token = localStorage.getItem("token");
     const method = editId ? "PUT" : "POST";
     const url = editId
-      ? `http://localhost:5000/api/orders/${editId}`
-      : "http://localhost:5000/api/orders";
+      ? `https://malek-ecommerce-dashboard.up.railway.app/api/orders/${editId}`
+      : "https://malek-ecommerce-dashboard.up.railway.app/api/orders";
 
     const products = (form.products || []).map(p => ({
       product: p.product,
@@ -449,7 +449,7 @@ const Orders: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/orders/${id}`, {
+    fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/orders/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })
