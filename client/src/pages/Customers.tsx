@@ -3,6 +3,9 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { MdCheckCircle } from "react-icons/md";
 
+// add API base from env
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 interface Customer {
   _id: string;
   customerId: string;
@@ -51,7 +54,7 @@ const Customers: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
+    fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -70,7 +73,7 @@ const Customers: React.FC = () => {
 
   const fetchAllCustomers = () => {
     const token = localStorage.getItem("token");
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
+    fetch(`${API}/api/customers`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -189,7 +192,7 @@ const Customers: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/customers/${id}`, {
+    fetch(`${API}/api/customers/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })

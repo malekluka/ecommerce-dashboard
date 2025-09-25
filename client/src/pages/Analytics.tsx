@@ -13,6 +13,9 @@ import { getAnalyticsStats } from "../utils/analytics";
 import type { Order, Customer } from "../utils/analytics";
 import { useNavigate } from "react-router-dom";
 
+// add API base from env
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 const Analytics: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -26,7 +29,7 @@ const Analytics: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
+    fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -47,10 +50,10 @@ const Analytics: React.FC = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
         const [ordersRes, customersRes] = await Promise.all([
-          fetch("https://malek-ecommerce-dashboard.up.railway.app/api/orders", {
+          fetch(`${API}/api/orders`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
+          fetch(`${API}/api/customers`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

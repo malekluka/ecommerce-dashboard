@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+// add API base from env
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 const sidebarLinks = [
 	{
 		to: "/",
@@ -122,21 +125,21 @@ const Sidebar: React.FC = () => {
 	}, [isCollapsed]);
 
 	useEffect(() => {
-		const checkStatus = async () => {
-			const token = localStorage.getItem("token");
-			try {
-				const res = await fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
-					headers: { Authorization: `Bearer ${token}` },
-				});
-				setIsOnline(res.ok);
-			} catch {
-				setIsOnline(false);
-			}
-		};
-		checkStatus();
-		const interval = setInterval(checkStatus, 10000); // check every 10s
-		return () => clearInterval(interval);
-	}, []);
+			const checkStatus = async () => {
+				const token = localStorage.getItem("token");
+				try {
+					const res = await fetch(`${API}/api/auth/me`, {
+						headers: { Authorization: `Bearer ${token}` },
+					});
+					setIsOnline(res.ok);
+				} catch {
+					setIsOnline(false);
+				}
+			};
+			checkStatus();
+			const interval = setInterval(checkStatus, 10000); // check every 10s
+			return () => clearInterval(interval);
+		}, []);
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");

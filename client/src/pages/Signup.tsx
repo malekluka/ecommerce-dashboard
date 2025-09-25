@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// add API base (env first, fallback to localhost)
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 const Signup: React.FC = () => {
 	const [email, setEmail] = useState("");
 	const [username, setUsername] = useState("");
@@ -51,7 +54,7 @@ const Signup: React.FC = () => {
 
 		setLoading(true);
 		try {
-			const res = await fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/signup", {
+			const res = await fetch(`${API}/api/auth/signup`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, username, password }),

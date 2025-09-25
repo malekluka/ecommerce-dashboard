@@ -16,6 +16,9 @@ import {
   Area,
 } from "recharts";
 
+// add API base from env
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 const Dashboard: React.FC = () => {
   const [adminUsername, setAdminUsername] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -55,7 +58,7 @@ const Dashboard: React.FC = () => {
   }
 
   // 3. Proceed with API calls if token is valid
-  axios.get("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
+  axios.get(`${API}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then((res) => {
@@ -70,10 +73,10 @@ const Dashboard: React.FC = () => {
     });
 
     Promise.all([
-      fetch("https://malek-ecommerce-dashboard.up.railway.app/api/orders", {
+      fetch(`${API}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       }),
-      fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
+      fetch(`${API}/api/customers`, {
         headers: { Authorization: `Bearer ${token}` }
       })
     ])

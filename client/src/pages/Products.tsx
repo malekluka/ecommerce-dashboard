@@ -4,6 +4,9 @@ import { fetchProducts, addProduct } from "../services/productService";
 import type { Product } from "../services/productService";
 import { useNavigate } from "react-router-dom";
 
+// add API base from env
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +45,7 @@ const Products: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
+    fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -98,14 +101,14 @@ const Products: React.FC = () => {
     setMessage(null);
 
     const submitAction = editId
-      ? fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/products/${editId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(form),
-      }).then((res) => res.json())
+      ? fetch(`${API}/api/products/${editId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(form),
+        }).then((res) => res.json())
       : addProduct(form as Product);
 
     submitAction
@@ -158,7 +161,7 @@ const Products: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/products/${id}`, {
+    fetch(`${API}/api/products/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })

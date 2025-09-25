@@ -4,6 +4,9 @@ import { MdCheckCircle, MdError } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts } from "../services/productService";
 
+// add API base from env
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 interface ProductRef {
   _id: string;
   name?: string;
@@ -86,7 +89,7 @@ const Orders: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
+    fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
@@ -106,7 +109,7 @@ const Orders: React.FC = () => {
   const fetchAllOrders = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("https://malek-ecommerce-dashboard.up.railway.app/api/orders", {
+      const res = await fetch(`${API}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -133,7 +136,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/customers", {
+    fetch(`${API}/api/customers`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -158,7 +161,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/discounts", {
+    fetch(`${API}/api/discounts`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -264,8 +267,8 @@ const Orders: React.FC = () => {
     const token = localStorage.getItem("token");
     const method = editId ? "PUT" : "POST";
     const url = editId
-      ? `https://malek-ecommerce-dashboard.up.railway.app/api/orders/${editId}`
-      : "https://malek-ecommerce-dashboard.up.railway.app/api/orders";
+      ? `${API}/api/orders/${editId}`
+      : `${API}/api/orders`;
 
     const products = (form.products || []).map(p => ({
       product: p.product,
@@ -449,7 +452,7 @@ const Orders: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`https://malek-ecommerce-dashboard.up.railway.app/api/orders/${id}`, {
+    fetch(`${API}/api/orders/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// add API base (env first, fallback to localhost)
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState(() => localStorage.getItem("rememberedEmail") || "");
   const [password, setPassword] = useState("");
@@ -12,16 +15,13 @@ const Login: React.FC = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
 
-  
-
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       setCheckingAuth(false);
       return;
     }
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
+    fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -53,7 +53,7 @@ const Login: React.FC = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/login", {
+      const res = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
