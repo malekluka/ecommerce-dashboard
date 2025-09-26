@@ -20,18 +20,11 @@
       "dest": "/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/client/$1"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "handle": "filesystem"
     },
     {
-      "source": "/(.*)",
-      "destination": "/client/index.html"
+      "src": "/(.*)",
+      "dest": "/client/index.html"
     }
   ]
 }
