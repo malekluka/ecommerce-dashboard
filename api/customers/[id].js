@@ -5,7 +5,9 @@ import { corsMiddleware, authMiddleware } from '../_lib/auth.js';
 
 async function handler(req, res) {
   await connectDB();
-  const { id } = req.query;
+  
+  // Extract ID from URL path for Vercel
+  const id = req.query.id || req.url?.split('/').pop();
 
   if (req.method === 'PUT') {
     try {
@@ -23,8 +25,11 @@ async function handler(req, res) {
         return res.status(404).json({ error: 'Customer not found' });
       }
 
-      res.json(customer);
+      // Remove password from response
+      const { password: _, ...customerData } = customer.toObject();
+      res.json(customerData);
     } catch (err) {
+      console.error('Update customer error:', err);
       res.status(500).json({ error: err.message });
     }
   } else if (req.method === 'DELETE') {
@@ -33,8 +38,20 @@ async function handler(req, res) {
       if (!customer) {
         return res.status(404).json({ error: 'Customer not found' });
       }
-      res.json({ message: 'Customer deleted' });
+      res.json({ message: 'Customer deleted successfully' });
     } catch (err) {
+      console.error('Delete customer error:', err);
+      res.status(500).json({ error: err.message });
+    }
+  } else if (req.method === 'GET') {
+    try {
+      const customer = await Customer.findById(id).select('-password');
+      if (!customer) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+      res.json(customer);
+    } catch (err) {
+      console.error('Get customer error:', err);
       res.status(500).json({ error: err.message });
     }
   } else {
