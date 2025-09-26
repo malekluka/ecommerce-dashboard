@@ -1,7 +1,22 @@
 {
-	"devDependencies": {
-		"@tailwindcss/postcss": "^4.1.8",
-		"autoprefixer": "^10.4.21",
-		"postcss": "^8.5.4"
-	}
+  "name": "ecommerce-dashboard-fullstack",
+  "version": "1.0.0",
+  "description": "E-commerce Dashboard with React frontend and Vercel Functions backend",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel --prod",
+    "client:dev": "cd client && npm run dev",
+    "client:build": "cd client && npm run build"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.8",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.4"
+  }
 }
