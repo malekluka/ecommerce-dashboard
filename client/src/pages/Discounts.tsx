@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { MdCheckCircle } from "react-icons/md";
 
 // add API base from env
-const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:3000").replace(/\/$/, "");
 
 interface Discount {
   _id?: string;

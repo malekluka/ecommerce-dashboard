@@ -3,9 +3,6 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { MdCheckCircle } from "react-icons/md";
 
-// add API base from env
-const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
-
 interface Customer {
   _id: string;
   customerId: string;
@@ -54,7 +51,7 @@ const Customers: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch(`${API}/api/auth/me`, {
+    fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -73,7 +70,7 @@ const Customers: React.FC = () => {
 
   const fetchAllCustomers = () => {
     const token = localStorage.getItem("token");
-    fetch(`${API}/api/customers`, {
+    fetch("/api/customers", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -136,9 +133,7 @@ const Customers: React.FC = () => {
 
     const token = localStorage.getItem("token");
     const method = editId ? "PUT" : "POST";
-    const url = editId
-      ? `https://malek-ecommerce-dashboard.up.railway.app/api/customers/${editId}`
-      : "https://malek-ecommerce-dashboard.up.railway.app/api/customers";
+    const url = editId ? `/api/customers/${editId}` : `/api/customers`;
 
     // Prepare payload: omit password if editing and password is empty
     const payload = { ...form };
@@ -192,19 +187,19 @@ const Customers: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`${API}/api/customers/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(() => {
-        setMessage({ type: "success", text: "Customer deleted!" });
-        setDeletingId(null);
-        fetchAllCustomers();
-      })
-      .catch(() => {
-        setMessage({ type: "error", text: "Failed to delete customer." });
-        setDeletingId(null);
-      });
+    fetch(`/api/customers/${id}`, {
+       method: "DELETE",
+       headers: { Authorization: `Bearer ${token}` },
+     })
+       .then(() => {
+         setMessage({ type: "success", text: "Customer deleted!" });
+         setDeletingId(null);
+         fetchAllCustomers();
+       })
+       .catch(() => {
+         setMessage({ type: "error", text: "Failed to delete customer." });
+         setDeletingId(null);
+       });
   };
 
   // Filtering logic (case-insensitive, partial match)

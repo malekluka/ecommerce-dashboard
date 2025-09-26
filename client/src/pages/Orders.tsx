@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchProducts } from "../services/productService";
 
 // add API base from env
-const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:5000").replace(/\/$/, "");
+const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:3000").replace(/\/$/, "");
 
 interface ProductRef {
   _id: string;
