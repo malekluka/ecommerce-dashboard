@@ -1,5 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "cd client && pnpm run build",
+  "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist"
 }
