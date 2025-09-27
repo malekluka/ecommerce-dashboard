@@ -89,7 +89,7 @@ const Orders: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch(`${API}/api/auth/me`, {
+    fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
@@ -109,7 +109,7 @@ const Orders: React.FC = () => {
   const fetchAllOrders = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API}/api/orders`, {
+      const res = await fetch("/api/orders", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -136,7 +136,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${API}/api/customers`, {
+    fetch("/api/customers", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -161,7 +161,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${API}/api/discounts`, {
+    fetch("/api/discounts", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -452,7 +452,7 @@ const Orders: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`${API}/api/orders/${id}`, {
+    fetch(`/api/orders/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })

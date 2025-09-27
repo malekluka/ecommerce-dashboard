@@ -26,7 +26,7 @@ const Analytics: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch('/api/auth/me', {
+    fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -47,10 +47,10 @@ const Analytics: React.FC = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
         const [ordersRes, customersRes] = await Promise.all([
-          fetch('/api/orders', {
+          fetch("/api/orders", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch('/api/customers', {
+          fetch("/api/customers", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

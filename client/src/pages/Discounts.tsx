@@ -3,9 +3,6 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { MdCheckCircle } from "react-icons/md";
 
-// add API base from env
-const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:3000").replace(/\/$/, "");
-
 interface Discount {
   _id?: string;
   code: string;
@@ -40,7 +37,7 @@ const Discounts: React.FC = () => {
 
   const fetchDiscounts = () => {
     const token = localStorage.getItem("token");
-    fetch(`${API}/api/discounts`, {
+    fetch("/api/discounts", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => res.json())
@@ -73,21 +70,21 @@ const Discounts: React.FC = () => {
     if (!token) {
       return;
     }
-    fetch("https://malek-ecommerce-dashboard.up.railway.app/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          localStorage.removeItem("token");
-          navigate("/login");
-        } else {
-          setCanFetch(true);
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem("token");
-        navigate("/login");
-      });
+    fetch("/api/auth/me", {
+       headers: { Authorization: `Bearer ${token}` },
+     })
+       .then((res) => {
+         if (!res.ok) {
+           localStorage.removeItem("token");
+           navigate("/login");
+         } else {
+           setCanFetch(true);
+         }
+       })
+       .catch(() => {
+         localStorage.removeItem("token");
+         navigate("/login");
+       });
   }, [navigate]);
 
   useEffect(() => {
@@ -162,7 +159,7 @@ const Discounts: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`${API}/api/discounts/${id}`, {
+    fetch(`/api/discounts/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     })

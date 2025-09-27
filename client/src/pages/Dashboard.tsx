@@ -16,9 +16,6 @@ import {
   Area,
 } from "recharts";
 
-// add API base from env
-const API = (import.meta.env.VITE_API_PUBLIC_LINK || "http://localhost:3000").replace(/\/$/, "");
-
 const Dashboard: React.FC = () => {
   const [adminUsername, setAdminUsername] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -58,7 +55,7 @@ const Dashboard: React.FC = () => {
   }
 
   // 3. Proceed with API calls if token is valid
-  axios.get(`${API}/api/auth/me`, {
+  axios.get("/api/auth/me", {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then((res) => {
@@ -73,10 +70,10 @@ const Dashboard: React.FC = () => {
     });
 
     Promise.all([
-      fetch(`${API}/api/orders`, {
+      fetch("/api/orders", {
         headers: { Authorization: `Bearer ${token}` }
       }),
-      fetch(`${API}/api/customers`, {
+      fetch("/api/customers", {
         headers: { Authorization: `Bearer ${token}` }
       })
     ])
