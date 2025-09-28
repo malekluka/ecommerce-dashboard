@@ -13,13 +13,15 @@ const Login: React.FC = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
 
+  const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173"; 
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       setCheckingAuth(false);
       return;
     }
-    fetch("/api/auth/me", {
+    fetch(`${APP_LINK}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -33,6 +35,7 @@ const Login: React.FC = () => {
         localStorage.removeItem("token");
         setCheckingAuth(false);
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   if (checkingAuth) return null;
@@ -51,14 +54,17 @@ const Login: React.FC = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${APP_LINK}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok) setError(data.message || "Login failed");
-      else {
+      if (!res.ok) {
+        // Handle API error response format
+        setError(data.message || "Login failed");
+      } else {
+        // API returns { success: true, token, user }
         localStorage.setItem("token", data.token);
         if (rememberMe) localStorage.setItem("rememberedEmail", email);
         else localStorage.removeItem("rememberedEmail");

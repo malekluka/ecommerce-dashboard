@@ -117,6 +117,9 @@ const Sidebar: React.FC = () => {
 	const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 	const [isOnline, setIsOnline] = useState<boolean>(true);
 
+	const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173"; 
+
+
 	useEffect(() => {
 		localStorage.setItem("sidebar-collapsed", isCollapsed ? "true" : "false");
 	}, [isCollapsed]);
@@ -125,7 +128,7 @@ const Sidebar: React.FC = () => {
 			const checkStatus = async () => {
 				const token = localStorage.getItem("token");
 				try {
-					const res = await fetch('/api/auth/me', {
+					const res = await fetch(`${APP_LINK}/api/auth/me`, {
 						headers: { Authorization: `Bearer ${token}` },
 					});
 					setIsOnline(res.ok);
@@ -136,6 +139,7 @@ const Sidebar: React.FC = () => {
 			checkStatus();
 			const interval = setInterval(checkStatus, 10000); // check every 10s
 			return () => clearInterval(interval);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, []);
 
 	const handleLogout = () => {
