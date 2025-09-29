@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
 
-  const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:3000"; 
+  const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173"; 
 
   useEffect(() => {
     const token = localStorage.getItem("token");
