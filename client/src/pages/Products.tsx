@@ -28,6 +28,7 @@ const Products: React.FC = () => {
     priceMin: "",
     priceMax: "",
     category: "",
+    name: "",
   });
   const [sort, setSort] = useState<{ field: string; direction: "asc" | "desc" }>({
     field: "",
@@ -45,7 +46,7 @@ const Products: React.FC = () => {
       navigate("/login");
       return;
     }
-    
+
     fetch(`${APP_LINK}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -70,9 +71,9 @@ const Products: React.FC = () => {
       const data = await fetchProducts();
       setProducts(data);
     } catch (err) {
-      setMessage({ 
-        type: "error", 
-        text: err instanceof Error ? err.message : "Failed to load products" 
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to load products"
       });
     } finally {
       setLoading(false);
@@ -156,9 +157,9 @@ const Products: React.FC = () => {
         }
       }, 500);
     } catch (err) {
-      setMessage({ 
-        type: "error", 
-        text: err instanceof Error ? err.message : "Failed to save product" 
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to save product"
       });
     }
   };
@@ -219,9 +220,9 @@ const Products: React.FC = () => {
       setDeletingId(null);
       await fetchAllProducts();
     } catch (err) {
-      setMessage({ 
-        type: "error", 
-        text: err instanceof Error ? err.message : "Failed to delete product" 
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to delete product"
       });
       setDeletingId(null);
     }
@@ -254,7 +255,10 @@ const Products: React.FC = () => {
     const categoryOk =
       filter.category === "" ||
       product.category.toLowerCase().includes(filter.category.toLowerCase());
-    return stockOk && priceMinOk && priceMaxOk && categoryOk;
+    const nameOk =
+      filter.name === "" ||
+      product.name.toLowerCase().includes(filter.name.toLowerCase()); // Add this line
+    return stockOk && priceMinOk && priceMaxOk && categoryOk && nameOk; // Add nameOk
   });
 
   // Sorting logic
@@ -262,7 +266,7 @@ const Products: React.FC = () => {
     if (!sort.field) return 0;
     let aValue = a[sort.field as keyof Product];
     let bValue = b[sort.field as keyof Product];
-    
+
     if (typeof aValue === "string" && typeof bValue === "string") {
       aValue = aValue.toLowerCase();
       bValue = bValue.toLowerCase();
@@ -270,11 +274,11 @@ const Products: React.FC = () => {
       if (aValue > bValue) return sort.direction === "asc" ? 1 : -1;
       return 0;
     }
-    
+
     if (typeof aValue === "number" && typeof bValue === "number") {
       return sort.direction === "asc" ? aValue - bValue : bValue - aValue;
     }
-    
+
     return 0;
   });
 
@@ -286,9 +290,8 @@ const Products: React.FC = () => {
   };
 
   const clearFilters = () => {
-    setFilter({ stock: "", priceMin: "", priceMax: "", category: "" });
+    setFilter({ stock: "", priceMin: "", priceMax: "", category: "", name: "" }); // Add name: ""
   };
-
   const closeForm = () => {
     setShowForm(false);
     setForm({
@@ -311,7 +314,7 @@ const Products: React.FC = () => {
           <Sidebar />
           <main className="layout-content-container flex flex-col flex-1 min-w-0 max-w-full">
             <div className="min-h-screen bg-[#111422] font-sans p-6">
-              
+
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <h1 className="text-white text-3xl font-bold">Products</h1>
@@ -345,6 +348,21 @@ const Products: React.FC = () => {
                   </div>
                   
                   <div className="flex-1 min-w-[160px]">
+                    <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="name">
+                      Product Name
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      name="name"
+                      placeholder="Search by name..."
+                      value={filter.name}
+                      onChange={(e) => setFilter(f => ({ ...f, name: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                    />
+                  </div>
+
+                  <div className="flex-1 min-w-[160px]">
                     <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="priceMin">
                       Min Price
                     </label>
@@ -360,7 +378,7 @@ const Products: React.FC = () => {
                       step={0.01}
                     />
                   </div>
-                  
+
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="priceMax">
                       Max Price
@@ -377,7 +395,7 @@ const Products: React.FC = () => {
                       step={0.01}
                     />
                   </div>
-                  
+
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="category">
                       Category
@@ -392,7 +410,7 @@ const Products: React.FC = () => {
                       className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
-                  
+
                   <button
                     type="button"
                     className="px-4 py-3 rounded-lg bg-[#343b65] text-white font-medium border border-[#343b65] transition-all duration-200 hover:bg-[#4751a3] hover:scale-105 active:scale-95"
@@ -405,11 +423,10 @@ const Products: React.FC = () => {
 
               {/* Messages */}
               {message && (
-                <div className={`mb-6 px-4 py-3 rounded-lg flex items-center justify-between ${
-                  message.type === "success" 
-                    ? "bg-green-600/20 border border-green-500/30 text-green-100" 
+                <div className={`mb-6 px-4 py-3 rounded-lg flex items-center justify-between ${message.type === "success"
+                    ? "bg-green-600/20 border border-green-500/30 text-green-100"
                     : "bg-red-600/20 border border-red-500/30 text-red-100"
-                }`}>
+                  }`}>
                   <span className="font-medium">{message.text}</span>
                   <button
                     className="ml-4 text-current hover:opacity-70 transition-opacity"
@@ -601,7 +618,7 @@ const Products: React.FC = () => {
                   <table className="min-w-[800px] w-full">
                     <thead className="bg-[#242a47]">
                       <tr>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("productId")}
                         >
@@ -614,7 +631,7 @@ const Products: React.FC = () => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("name")}
                         >
@@ -627,7 +644,7 @@ const Products: React.FC = () => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("stock")}
                         >
@@ -640,7 +657,7 @@ const Products: React.FC = () => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("price")}
                         >
@@ -653,7 +670,7 @@ const Products: React.FC = () => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("category")}
                         >
@@ -705,11 +722,10 @@ const Products: React.FC = () => {
                                 {product.name}
                               </td>
                               <td className="px-6 py-4">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                                  product.stock > 0 
-                                    ? "bg-green-600/20 text-green-200" 
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${product.stock > 0
+                                    ? "bg-green-600/20 text-green-200"
                                     : "bg-red-600/20 text-red-200"
-                                }`}>
+                                  }`}>
                                   {product.stock}
                                 </span>
                               </td>
@@ -803,7 +819,7 @@ const Products: React.FC = () => {
               <div className="mt-6 text-center">
                 <p className="text-[#939bc8] text-sm">
                   Showing {sortedProducts.length} of {products.length} products
-                  {(filter.stock || filter.priceMin || filter.priceMax || filter.category) && (
+                  {(filter.stock || filter.priceMin || filter.priceMax || filter.category || filter.name) && (
                     <span className="ml-1">(filtered)</span>
                   )}
                 </p>
