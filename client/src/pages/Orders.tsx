@@ -98,7 +98,7 @@ const Orders: React.FC = () => {
       navigate("/login");
       return;
     }
-    
+
     fetch(`${APP_LINK}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -119,20 +119,22 @@ const Orders: React.FC = () => {
   // Fetch all orders
   const fetchAllOrders = useCallback(async () => {
     if (!canFetch) return;
-    
+
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await fetch(`${APP_LINK}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch orders");
       }
-      
+
+      // In fetchAllOrders function, after getting the data:
       const data = await res.json();
+      console.log('Orders from API:', data); // Add this line
       setOrders(data);
     } catch (err) {
       setMessage({
@@ -214,7 +216,7 @@ const Orders: React.FC = () => {
   // Calculate total whenever products or discount changes
   const calculateTotal = useCallback(() => {
     if (!form.products) return 0;
-    
+
     let subtotal = 0;
     form.products.forEach(p => {
       const product = productsList.find(
@@ -299,11 +301,16 @@ const Orders: React.FC = () => {
         quantity: p.quantity
       }));
 
+      // Don't send total - let backend calculate it
       const orderData = {
-        ...form,
+        orderId: form.orderId,
+        customer: form.customer,
         products,
+        status: form.status,
+        payment: form.payment,
+        address: form.address,
         discount: selectedDiscountId || form.discount || null,
-        total: calculateTotal()
+        createdAt: form.createdAt
       };
 
       const method = editId ? "PUT" : "POST";
@@ -313,7 +320,7 @@ const Orders: React.FC = () => {
       if (editId) {
         const oldOrder = orders.find(o => o._id === editId);
         if (oldOrder) {
-          const hasChanges = 
+          const hasChanges =
             oldOrder.orderId !== form.orderId ||
             (typeof oldOrder.customer === "string" ? oldOrder.customer : oldOrder.customer?._id || "") !== form.customer ||
             oldOrder.status !== form.status ||
@@ -351,9 +358,9 @@ const Orders: React.FC = () => {
           type: "success",
           text: editId ? "Order updated successfully!" : "Order created successfully!"
         });
-        
+
         await fetchAllOrders();
-        
+
         if (editId) {
           setTimeout(() => {
             closeForm();
@@ -373,9 +380,9 @@ const Orders: React.FC = () => {
   const handleEdit = (order: Order) => {
     const products = order.products?.length > 0
       ? order.products.map(p => ({
-          product: typeof p.product === 'string' ? p.product : p.product._id || "",
-          quantity: p.quantity
-        }))
+        product: typeof p.product === 'string' ? p.product : p.product._id || "",
+        quantity: p.quantity
+      }))
       : [{ product: "", quantity: 1 }];
 
     setForm({
@@ -388,7 +395,7 @@ const Orders: React.FC = () => {
       createdAt: order.createdAt,
       discount: order.discount || "",
     });
-    
+
     setSelectedDiscountId(order.discount || null);
     setEditId(order._id);
     setMessage(null);
@@ -470,70 +477,70 @@ const Orders: React.FC = () => {
   const filteredOrders = orders.filter((order) => {
     const statusOk = !filter.status || order.status === filter.status;
     const paymentOk = !filter.payment || order.payment === filter.payment;
-    const orderIdOk = !filter.orderId || 
+    const orderIdOk = !filter.orderId ||
       order.orderId.toLowerCase().includes(filter.orderId.toLowerCase()) ||
       order._id.toLowerCase().includes(filter.orderId.toLowerCase());
-    
+
     const customerName = typeof order.customer === "object" && order.customer
       ? `${order.customer.firstName || ""} ${order.customer.lastName || ""}`.trim().toLowerCase()
       : typeof order.customer === "string" ? order.customer.toLowerCase() : "";
     const customerOk = !filter.customer ||
       (customerName && customerName.includes(filter.customer.toLowerCase()));
-    
+
     const dateString = order.createdAt ? new Date(order.createdAt).toISOString().slice(0, 10) : "";
     const dateOk = !filter.date || (dateString && dateString === filter.date);
-    
+
     return statusOk && paymentOk && customerOk && dateOk && orderIdOk;
   });
 
- // Sorting logic
-const sortedOrders = [...filteredOrders].sort((a, b) => {
-  if (!sort.field) return 0;
-  
-  let aValue: string | number | undefined;
-  let bValue: string | number | undefined;
-  
-  // Handle customer sorting specially
-  if (sort.field === "customer") {
-    aValue = typeof a.customer === "object" && a.customer
-      ? `${a.customer.firstName || ""} ${a.customer.lastName || ""}`.trim()
-      : typeof a.customer === "string" ? a.customer : "";
-    bValue = typeof b.customer === "object" && b.customer
-      ? `${b.customer.firstName || ""} ${b.customer.lastName || ""}`.trim()
-      : typeof b.customer === "string" ? b.customer : "";
-  }
-  // Handle date sorting specially
-  else if (sort.field === "createdAt") {
-    aValue = new Date(a.createdAt).getTime();
-    bValue = new Date(b.createdAt).getTime();
-  }
-  // Handle other fields
-  else {
-    aValue = a[sort.field as keyof Order] as string | number | undefined;
-    bValue = b[sort.field as keyof Order] as string | number | undefined;
-  }
-  
-  // Handle undefined values
-  if (aValue === undefined && bValue === undefined) return 0;
-  if (aValue === undefined) return 1;
-  if (bValue === undefined) return -1;
-  
-  // String comparison
-  if (typeof aValue === "string" && typeof bValue === "string") {
-    const aLower = aValue.toLowerCase();
-    const bLower = bValue.toLowerCase();
-    if (aLower < bLower) return sort.direction === "asc" ? -1 : 1;
-    if (aLower > bLower) return sort.direction === "asc" ? 1 : -1;
+  // Sorting logic
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
+    if (!sort.field) return 0;
+
+    let aValue: string | number | undefined;
+    let bValue: string | number | undefined;
+
+    // Handle customer sorting specially
+    if (sort.field === "customer") {
+      aValue = typeof a.customer === "object" && a.customer
+        ? `${a.customer.firstName || ""} ${a.customer.lastName || ""}`.trim()
+        : typeof a.customer === "string" ? a.customer : "";
+      bValue = typeof b.customer === "object" && b.customer
+        ? `${b.customer.firstName || ""} ${b.customer.lastName || ""}`.trim()
+        : typeof b.customer === "string" ? b.customer : "";
+    }
+    // Handle date sorting specially
+    else if (sort.field === "createdAt") {
+      aValue = new Date(a.createdAt).getTime();
+      bValue = new Date(b.createdAt).getTime();
+    }
+    // Handle other fields
+    else {
+      aValue = a[sort.field as keyof Order] as string | number | undefined;
+      bValue = b[sort.field as keyof Order] as string | number | undefined;
+    }
+
+    // Handle undefined values
+    if (aValue === undefined && bValue === undefined) return 0;
+    if (aValue === undefined) return 1;
+    if (bValue === undefined) return -1;
+
+    // String comparison
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      const aLower = aValue.toLowerCase();
+      const bLower = bValue.toLowerCase();
+      if (aLower < bLower) return sort.direction === "asc" ? -1 : 1;
+      if (aLower > bLower) return sort.direction === "asc" ? 1 : -1;
+      return 0;
+    }
+
+    // Number comparison
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      return sort.direction === "asc" ? aValue - bValue : bValue - aValue;
+    }
+
     return 0;
-  }
-  
-  // Number comparison
-  if (typeof aValue === "number" && typeof bValue === "number") {
-    return sort.direction === "asc" ? aValue - bValue : bValue - aValue;
-  }
-  
-  return 0;
-});
+  });
 
   const handleSort = (field: string) => {
     setSort(prev => ({
@@ -579,7 +586,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
           <Sidebar />
           <main className="layout-content-container flex flex-col flex-1 min-w-0 max-w-full">
             <div className="min-h-screen bg-[#111422] font-sans p-6">
-              
+
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <h1 className="text-white text-3xl font-bold">Orders</h1>
@@ -595,13 +602,12 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
               {message && (
                 <div
                   ref={messageRef}
-                  className={`mb-6 px-4 py-3 rounded-lg flex items-center gap-3 ${
-                    message.type === "success"
-                      ? "bg-green-600/20 border border-green-500/30 text-green-100"
-                      : message.type === "warning"
+                  className={`mb-6 px-4 py-3 rounded-lg flex items-center gap-3 ${message.type === "success"
+                    ? "bg-green-600/20 border border-green-500/30 text-green-100"
+                    : message.type === "warning"
                       ? "bg-yellow-600/20 border border-yellow-500/30 text-yellow-100"
                       : "bg-red-600/20 border border-red-500/30 text-red-100"
-                  }`}
+                    }`}
                 >
                   {message.type === "success" ? (
                     <MdCheckCircle className="text-xl flex-shrink-0" />
@@ -863,7 +869,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                       className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
-                  
+
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-[#939bc8] text-sm font-medium mb-2">Status</label>
                     <select
@@ -877,7 +883,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                       <option value="delivered">✅ Delivered</option>
                     </select>
                   </div>
-                  
+
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-[#939bc8] text-sm font-medium mb-2">Payment</label>
                     <select
@@ -891,7 +897,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                       <option value="Partially Paid">🟡 Partially Paid</option>
                     </select>
                   </div>
-                  
+
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-[#939bc8] text-sm font-medium mb-2">Customer</label>
                     <input
@@ -902,7 +908,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                       className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
-                  
+
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-[#939bc8] text-sm font-medium mb-2">Date</label>
                     <input
@@ -912,7 +918,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                       className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
-                  
+
                   <button
                     type="button"
                     className="px-4 py-3 rounded-lg bg-[#343b65] text-white font-medium border border-[#343b65] transition-all duration-200 hover:bg-[#4751a3] hover:scale-105 active:scale-95"
@@ -929,7 +935,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                   <table className="min-w-[900px] w-full">
                     <thead className="bg-[#242a47]">
                       <tr>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("orderId")}
                         >
@@ -942,7 +948,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("customer")}
                         >
@@ -955,7 +961,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("createdAt")}
                         >
@@ -968,7 +974,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("status")}
                         >
@@ -981,7 +987,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("payment")}
                         >
@@ -994,7 +1000,7 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                             )}
                           </div>
                         </th>
-                        <th 
+                        <th
                           className="px-6 py-4 text-left text-white text-sm font-semibold cursor-pointer select-none hover:bg-[#2d3451] transition-colors"
                           onClick={() => handleSort("total")}
                         >
@@ -1060,9 +1066,32 @@ const sortedOrders = [...filteredOrders].sort((a, b) => {
                               </span>
                             </td>
                             <td className="px-6 py-4 text-[#0bda65] font-semibold">
-                              {typeof order.total === "number"
-                                ? `${order.total.toFixed(2)}`
-                                : order.total || "$0.00"}
+                              {(() => {
+                                // If total exists and is greater than 0, show it
+                                if (order.total && order.total > 0) {
+                                  return `$${order.total.toFixed(2)}`;
+                                }
+
+                                // Otherwise calculate from populated products
+                                let calculatedTotal = 0;
+                                if (order.products && Array.isArray(order.products)) {
+                                  order.products.forEach(item => {
+                                    if (typeof item.product === 'object' && item.product && item.product.price) {
+                                      calculatedTotal += item.product.price * item.quantity;
+                                    }
+                                  });
+                                }
+
+                                // Apply discount if exists
+                                if (order.discount && calculatedTotal > 0) {
+                                  const discount = discounts.find(d => d._id === order.discount);
+                                  if (discount) {
+                                    calculatedTotal = calculatedTotal * (1 - discount.percentage / 100);
+                                  }
+                                }
+
+                                return calculatedTotal > 0 ? `$${calculatedTotal.toFixed(2)}` : "$0.00";
+                              })()}
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex gap-3">

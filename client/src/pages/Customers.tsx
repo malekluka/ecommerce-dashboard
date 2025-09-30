@@ -3,6 +3,8 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { MdCheckCircle } from "react-icons/md";
 
+const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
+
 interface Customer {
   _id: string;
   customerId: string;
@@ -51,7 +53,7 @@ const Customers: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("/api/auth/me", {
+    fetch(`${APP_LINK}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -68,17 +70,25 @@ const Customers: React.FC = () => {
       });
   }, [navigate]);
 
-  const fetchAllCustomers = () => {
-    const token = localStorage.getItem("token");
-    fetch("/api/customers", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setCustomers(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+  const fetchAllCustomers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${APP_LINK}/api/customers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch customers");
+      }
+
+      const data = await response.json();
+      setCustomers(data);
+    } catch (err) {
+      console.error("Error fetching customers:", err);
+      setMessage({ type: "error", text: "Failed to load customers" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -93,8 +103,8 @@ const Customers: React.FC = () => {
   }, [editId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  setForm({ ...form, [e.target.name]: e.target.value });
-};
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
 
   // Validation helper
@@ -133,7 +143,7 @@ const Customers: React.FC = () => {
 
     const token = localStorage.getItem("token");
     const method = editId ? "PUT" : "POST";
-    const url = editId ? `/api/customers/${editId}` : `/api/customers`;
+    const url = editId ? `${APP_LINK}/api/customers/${editId}` : `${APP_LINK}/api/customers`;
 
     // Prepare payload: omit password if editing and password is empty
     const payload = { ...form };
@@ -187,19 +197,19 @@ const Customers: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`/api/customers/${id}`, {
-       method: "DELETE",
-       headers: { Authorization: `Bearer ${token}` },
-     })
-       .then(() => {
-         setMessage({ type: "success", text: "Customer deleted!" });
-         setDeletingId(null);
-         fetchAllCustomers();
-       })
-       .catch(() => {
-         setMessage({ type: "error", text: "Failed to delete customer." });
-         setDeletingId(null);
-       });
+    fetch(`${APP_LINK}/api/customers/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(() => {
+        setMessage({ type: "success", text: "Customer deleted!" });
+        setDeletingId(null);
+        fetchAllCustomers();
+      })
+      .catch(() => {
+        setMessage({ type: "error", text: "Failed to delete customer." });
+        setDeletingId(null);
+      });
   };
 
   // Filtering logic (case-insensitive, partial match)
@@ -228,23 +238,23 @@ const Customers: React.FC = () => {
   };
 
   // Helper to get field error messages
-const getFieldErrors = (form: Partial<Customer>) => {
-  const errors: { [key: string]: string } = {};
-  if (!form.username?.trim()) errors.username = "Username is required.";
-  if (!form.email) errors.email = "Email is required.";
-  else {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) errors.email = "Email is invalid.";
-  }
-  if (!editId && !form.password) errors.password = "Password is required.";
-  if (!form.firstName?.trim()) errors.firstName = "First name is required.";
-  if (!form.lastName?.trim()) errors.lastName = "Last name is required.";
-  if (!form.address?.trim()) errors.address = "Address is required.";
-  if (!form.phone) errors.phone = "Phone is required.";
-  return errors;
-};
+  const getFieldErrors = (form: Partial<Customer>) => {
+    const errors: { [key: string]: string } = {};
+    if (!form.username?.trim()) errors.username = "Username is required.";
+    if (!form.email) errors.email = "Email is required.";
+    else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) errors.email = "Email is invalid.";
+    }
+    if (!editId && !form.password) errors.password = "Password is required.";
+    if (!form.firstName?.trim()) errors.firstName = "First name is required.";
+    if (!form.lastName?.trim()) errors.lastName = "Last name is required.";
+    if (!form.address?.trim()) errors.address = "Address is required.";
+    if (!form.phone) errors.phone = "Phone is required.";
+    return errors;
+  };
 
-const fieldErrors = formTouched ? getFieldErrors(form) : {};
+  const fieldErrors = formTouched ? getFieldErrors(form) : {};
 
   return (
     <div className="relative flex min-h-screen flex-col bg-[#111422] font-sans">
@@ -256,7 +266,7 @@ const fieldErrors = formTouched ? getFieldErrors(form) : {};
               <div className="flex items-center justify-between mb-8">
                 <h1 className="text-white text-3xl font-bold">Customers</h1>
                 <button
-                  className="px-4 py-2 rounded bg-[#07b151] text-white font-bold transition-all duration-150 hover:bg-[#0bda65] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65]"
+                  className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#07b151] to-[#0bda65] text-white font-bold transition-all duration-200 hover:shadow-lg hover:shadow-[#07b151]/25 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65] active:scale-95"
                   onClick={handleAddNew}
                 >
                   Add Customer
@@ -376,18 +386,17 @@ const fieldErrors = formTouched ? getFieldErrors(form) : {};
                       <div className="flex gap-2 justify-center mt-4 w-full">
                         <button
                           type="submit"
-                          className={`px-4 py-2 rounded bg-[#07b151] text-white font-bold transition-all duration-150 hover:bg-[#0bda65] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65] ${
-                            !isFormValid ? "opacity-50" : ""
-                          }`}
+                          className={`px-4 py-2 rounded bg-[#07b151] text-white font-bold transition-all duration-150 hover:bg-[#0bda65] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65] ${!isFormValid ? "opacity-50" : ""
+                            }`}
                           title={isFormValid ? undefined : "Fill all fields correctly"}
                         >
                           {formTouched && !isFormValid ? (
-        <span className="text-red-300 font-semibold text-sm">
-          Please fill all fields correctly
-        </span>
-      ) : (
-        <>{editId ? "Update" : "Add"} Customer</>
-      )}
+                            <span className="text-red-300 font-semibold text-sm">
+                              Please fill all fields correctly
+                            </span>
+                          ) : (
+                            <>{editId ? "Update" : "Add"} Customer</>
+                          )}
                         </button>
                         <button
                           type="button"
@@ -401,173 +410,219 @@ const fieldErrors = formTouched ? getFieldErrors(form) : {};
                   </div>
                 </div>
               )}
-              {/* Filters */}
-              <div className="mb-6">
+              {/* Filters Section */}
+              <div className="mb-8 p-6 bg-[#1a1e32] rounded-xl border border-[#343b65]">
+                <h2 className="text-white text-lg font-semibold mb-4">Filters</h2>
                 <form className="flex flex-wrap gap-4 items-end" onSubmit={e => e.preventDefault()}>
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-[#939bc8] text-xs mb-1" htmlFor="filter-username">Username</label>
+                    <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="filter-username">
+                      Username
+                    </label>
                     <input
                       id="filter-username"
                       type="text"
-                      name="username"
-                      placeholder="Username"
+                      placeholder="Search username..."
                       value={filter.username}
                       onChange={e => setFilter(f => ({ ...f, username: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[#242a47] text-white"
+                      className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
+
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-[#939bc8] text-xs mb-1" htmlFor="filter-email">Email</label>
+                    <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="filter-email">
+                      Email
+                    </label>
                     <input
                       id="filter-email"
                       type="text"
-                      name="email"
-                      placeholder="Email"
+                      placeholder="Search email..."
                       value={filter.email}
                       onChange={e => setFilter(f => ({ ...f, email: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[#242a47] text-white"
+                      className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
+
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-[#939bc8] text-xs mb-1" htmlFor="filter-firstName">First Name</label>
+                    <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="filter-firstName">
+                      First Name
+                    </label>
                     <input
                       id="filter-firstName"
                       type="text"
-                      name="firstName"
-                      placeholder="First Name"
+                      placeholder="Search first name..."
                       value={filter.firstName}
                       onChange={e => setFilter(f => ({ ...f, firstName: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[#242a47] text-white"
+                      className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
+
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-[#939bc8] text-xs mb-1" htmlFor="filter-lastName">Last Name</label>
+                    <label className="block text-[#939bc8] text-sm font-medium mb-2" htmlFor="filter-lastName">
+                      Last Name
+                    </label>
                     <input
                       id="filter-lastName"
                       type="text"
-                      name="lastName"
-                      placeholder="Last Name"
+                      placeholder="Search last name..."
                       value={filter.lastName}
                       onChange={e => setFilter(f => ({ ...f, lastName: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[#242a47] text-white"
+                      className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                     />
                   </div>
+
                   <button
                     type="button"
-                    className="px-3 py-2 rounded bg-[#343b65] text-white font-bold border border-[#343b65] transition-all duration-150 hover:bg-[#4751a3] hover:scale-105 mt-6"
+                    className="px-4 py-3 rounded-lg bg-[#343b65] text-white font-medium border border-[#343b65] transition-all duration-200 hover:bg-[#4751a3] hover:scale-105 active:scale-95"
                     onClick={() => setFilter({ username: "", email: "", firstName: "", lastName: "" })}
                   >
                     Clear Filters
                   </button>
                 </form>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-[#343b65] bg-[#111422]">
-                <table className="min-w-[900px] w-full">
-                  <thead>
-                    <tr className="bg-[#1a1e32]">
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        Customer ID
-                      </th>
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        Username
-                      </th>
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        Email
-                      </th>
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        First Name
-                      </th>
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        Last Name
-                      </th>
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        Address
-                      </th>
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        Phone
-                      </th>
-                      <th className="px-4 py-3 text-left text-white text-base font-medium">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
+              <div className="overflow-hidden rounded-xl border border-[#343b65] bg-[#1a1e32]">
+                <div className="overflow-x-auto">
+                  <table className="min-w-[900px] w-full">
+                    <thead className="bg-[#242a47]">
                       <tr>
-                        <td colSpan={8} className="px-4 py-2 text-white text-center">Loading...</td>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          Customer ID
+                        </th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          Username
+                        </th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          Email
+                        </th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          First Name
+                        </th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          Last Name
+                        </th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          Address
+                        </th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          Phone
+                        </th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">
+                          Actions
+                        </th>
                       </tr>
-                    ) : filteredCustomers.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="px-4 py-2 text-white text-center">No customers found.</td>
-                      </tr>
-                    ) : (
-                      filteredCustomers.map((customer) => (
-                        <tr key={customer._id} className="border-t border-[#343b65]">
-                          <td className="px-4 py-2 text-white">
-                            {customer.customerId}
-                          </td>
-                          <td className="px-4 py-2 text-[#939bc8]">
-                            {customer.username}
-                          </td>
-                          <td className="px-4 py-2 text-[#939bc8]">
-                            {customer.email}
-                          </td>
-                          <td className="px-4 py-2 text-white">
-                            {customer.firstName || "-"}
-                          </td>
-                          <td className="px-4 py-2 text-white">
-                            {customer.lastName || "-"}
-                          </td>
-                          <td className="px-4 py-2 text-white">
-                            {customer.address || "-"}
-                          </td>
-                          <td className="px-4 py-2 text-white">
-                            {customer.phone || "-"}
-                          </td>
-                          <td className="px-4 py-2 flex gap-2">
-                            <button
-                              onClick={() => { handleEdit(customer); setShowForm(true); }}
-                              className="px-2 py-1 rounded bg-[#343b65] text-white text-xs flex items-center transition-all duration-150 hover:bg-[#4751a3] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65]"
-                              title="Edit"
-                            >
-                              <span className="material-icons text-base mr-1" aria-hidden="true">Edit</span>
-                            </button>
-                            <button
-                              onClick={() => handleDelete(customer._id)}
-                              className="px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center transition-all duration-150 hover:bg-red-700 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                              title="Delete"
-                            >
-                              <span className="material-icons text-base mr-1" aria-hidden="true">Delete</span>
-                            </button>
-                            {deletingId === customer._id && (
-                              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-                                <div className="bg-[#1a1e32] p-6 rounded shadow-lg text-white">
-                                  <p>Are you sure you want to delete this customer?</p>
-                                  <div className="mt-4 flex justify-center gap-2">
-                                    <button
-                                      className="px-4 py-2 bg-red-600 rounded text-white transition-all duration-150 hover:bg-red-700 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                                      onClick={() => confirmDelete(customer._id)}
-                                    >
-                                      Yes, Delete
-                                    </button>
-                                    <button
-                                      className="px-4 py-2 bg-[#343b65] rounded text-white transition-all duration-150 hover:bg-[#4751a3] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#939bc8]"
-                                      onClick={() => setDeletingId(null)}
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+                    </thead>
+                    <tbody className="divide-y divide-[#343b65]">
+                      {loading ? (
+                        <tr>
+                          <td colSpan={8} className="text-center text-[#939bc8] py-12">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0bda65]"></div>
+                              <span>Loading customers...</span>
+                            </div>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : filteredCustomers.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="text-center text-[#939bc8] py-12">
+                            <div className="flex flex-col items-center gap-3">
+                              <span className="text-4xl">👥</span>
+                              <span>No customers found</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredCustomers.map((customer) => (
+                          <tr key={customer._id} className="hover:bg-[#1f2439] transition-colors">
+                            <td className="px-6 py-4 text-white font-medium">
+                              {customer.customerId}
+                            </td>
+                            <td className="px-6 py-4 text-[#939bc8]">
+                              {customer.username}
+                            </td>
+                            <td className="px-6 py-4 text-[#939bc8]">
+                              {customer.email}
+                            </td>
+                            <td className="px-6 py-4 text-white">
+                              {customer.firstName || "-"}
+                            </td>
+                            <td className="px-6 py-4 text-white">
+                              {customer.lastName || "-"}
+                            </td>
+                            <td className="px-6 py-4 text-white">
+                              {customer.address || "-"}
+                            </td>
+                            <td className="px-6 py-4 text-white">
+                              {customer.phone || "-"}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={() => { handleEdit(customer); setShowForm(true); }}
+                                  className="p-2 rounded-lg bg-[#343b65] text-white text-sm font-medium transition-all duration-200 hover:bg-[#4751a3] hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65]"
+                                  title="Edit customer"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(customer._id)}
+                                  className="p-2 rounded-lg bg-red-600 text-white text-sm font-medium transition-all duration-200 hover:bg-red-700 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                                  title="Delete customer"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              {/* ...existing code for message... */}
+
+              {/* Delete Confirmation Modal - Outside table */}
+              {deletingId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                  <div className="bg-[#1a1e32] p-8 rounded-2xl shadow-2xl max-w-md mx-4 border border-[#343b65]">
+                    <div className="text-center">
+                      <div className="mb-4">
+                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-600/20">
+                          <span className="text-red-400 text-xl">⚠️</span>
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        Delete Customer
+                      </h3>
+                      <p className="text-[#939bc8] mb-6">
+                        Are you sure you want to delete this customer? This action cannot be undone.
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          className="flex-1 px-4 py-2 bg-red-600 rounded-lg text-white font-medium transition-all duration-200 hover:bg-red-700 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                          onClick={() => confirmDelete(deletingId)}
+                        >
+                          Yes, Delete
+                        </button>
+                        <button
+                          className="flex-1 px-4 py-2 bg-[#343b65] rounded-lg text-white font-medium transition-all duration-200 hover:bg-[#4751a3] hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#939bc8]"
+                          onClick={() => setDeletingId(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Results Summary */}
+              <div className="mt-6 text-center">
+                <p className="text-[#939bc8] text-sm">
+                  Showing {filteredCustomers.length} of {customers.length} customers
+                  {(filter.username || filter.email || filter.firstName || filter.lastName) && (
+                    <span className="ml-1">(filtered)</span>
+                  )}
+                </p>
+              </div>
             </div>
           </main>
         </div>

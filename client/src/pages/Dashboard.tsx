@@ -83,11 +83,12 @@ const Dashboard: React.FC = () => {
         setOrders(ordersData);
         setCustomers(customersData);
 
-        // --- Calculate sales trend for June 2024 (2024-06-01 to 2024-06-30) ---
+        // --- Calculate sales trend from first day of current month through today ---
+        const today = new Date();
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const days: { [date: string]: number } = {};
-        for (let i = 1; i <= 30; i++) {
-          const d = new Date(2024, 5, i); // June is month 5 (0-based)
-          const key = d.toISOString().split("T")[0];
+        for (let d = new Date(startOfMonth); d <= today; d.setDate(d.getDate() + 1)) {
+          const key = new Date(d).toISOString().split("T")[0];
           days[key] = 0;
         }
         ordersData.forEach((order) => {
@@ -100,7 +101,7 @@ const Dashboard: React.FC = () => {
         const chartData = Object.entries(days).map(([date, total]) => ({
           date: new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
           total,
-        }));
+        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setSalesTrendData(chartData);
 
         setLoading(false);
