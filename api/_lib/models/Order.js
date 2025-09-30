@@ -1,5 +1,3 @@
-import mongoose from 'mongoose';
-
 const OrderSchema = new mongoose.Schema({
   orderId: { type: String, required: true, unique: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: false },
@@ -19,7 +17,9 @@ const OrderSchema = new mongoose.Schema({
   },
   payment: { type: String, default: "Unpaid" },
   discount: { type: String, required: false },
-  total: { type: Number, required: false }
-}, { timestamps: true });
+  total: { type: Number, required: false },
+  createdAt: { type: Date, default: Date.now },  // Add this
+  updatedAt: { type: Date, default: Date.now }   // Add this
+}, { timestamps: false });  // Change to false
 
 export default mongoose.models.Order || mongoose.model('Order', OrderSchema);
