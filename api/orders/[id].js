@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import Product from "../_lib/models/Product.js";
 import connectDB from "../_lib/db.js";
 import Order from "../_lib/models/Order.js";
 import { corsMiddleware, authMiddleware } from "../_lib/auth.js";

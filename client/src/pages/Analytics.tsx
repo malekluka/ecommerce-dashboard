@@ -12,10 +12,13 @@ import {
 import type { Order, Customer } from "../utils/analytics";
 import { useNavigate } from "react-router-dom";
 
+const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
+
 const Analytics: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +27,7 @@ const Analytics: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch("/api/auth/me", {
+    fetch(`${APP_LINK}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -43,29 +46,42 @@ const Analytics: React.FC = () => {
     async function fetchData() {
       try {
         setLoading(true);
+        setError(null);
         const token = localStorage.getItem("token");
+        
         const [ordersRes, customersRes] = await Promise.all([
-          fetch("/api/orders", {
+          fetch(`${APP_LINK}/api/orders`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("/api/customers", {
+          fetch(`${APP_LINK}/api/customers`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
+
+        if (!ordersRes.ok) {
+          throw new Error(`Orders API error: ${ordersRes.status}`);
+        }
+        if (!customersRes.ok) {
+          throw new Error(`Customers API error: ${customersRes.status}`);
+        }
+
         const ordersData = await ordersRes.json();
         const customersData = await customersRes.json();
-        setOrders(ordersData);
-        setCustomers(customersData);
-        setLoading(false);
+        
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+        setCustomers(Array.isArray(customersData) ? customersData : []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
+        setError(error instanceof Error ? error.message : "Failed to load data");
+        setOrders([]);
+        setCustomers([]);
+      } finally {
         setLoading(false);
       }
     }
     fetchData();
   }, []);
 
-  // Helper to get date ranges
   const getDateRanges = () => {
     const now = new Date();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -75,58 +91,70 @@ const Analytics: React.FC = () => {
     return { currentMonthStart, lastMonthStart, lastMonthEnd, now };
   };
 
-  // Calculate proper metrics
   const calculateMetrics = () => {
-    const { currentMonthStart, lastMonthStart, lastMonthEnd } = getDateRanges();
-    
-    // Current month metrics
-    const currentOrders = orders.filter(o => new Date(o.createdAt) >= currentMonthStart);
-    const currentSales = currentOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const currentRevenue = currentOrders.reduce((sum, o) => sum + ((o.total || 0) - (o.cost || 0)), 0);
-    
-    // Last month metrics
-    const lastMonthOrders = orders.filter(o => {
-      const date = new Date(o.createdAt);
-      return date >= lastMonthStart && date <= lastMonthEnd;
-    });
-    const lastMonthSales = lastMonthOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const lastMonthRevenue = lastMonthOrders.reduce((sum, o) => sum + ((o.total || 0) - (o.cost || 0)), 0);
-    
-    // Calculate growth percentages
-    const salesGrowth = lastMonthSales > 0 
-      ? ((currentSales - lastMonthSales) / lastMonthSales) * 100 
-      : 0;
-    const revenueGrowth = lastMonthRevenue > 0 
-      ? ((currentRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
-      : 0;
-    const ordersGrowth = lastMonthOrders.length > 0 
-      ? ((currentOrders.length - lastMonthOrders.length) / lastMonthOrders.length) * 100 
-      : 0;
-    
+  // Safety check for empty data
+  if (!Array.isArray(orders) || orders.length === 0) {
     return {
-      currentSales,
-      currentRevenue,
-      currentOrderCount: currentOrders.length,
-      salesGrowth,
-      revenueGrowth,
-      ordersGrowth,
-      totalOrders: orders.length,
-      totalCustomers: customers.length,
+      currentSales: 0,
+      currentRevenue: 0,
+      currentOrderCount: 0,
+      salesGrowth: 0,
+      revenueGrowth: 0,
+      ordersGrowth: 0,
+      totalOrders: 0,
+      totalCustomers: Array.isArray(customers) ? customers.length : 0,
     };
-  };
+  }
 
-  // Build chart data
+  const { lastMonthStart, lastMonthEnd } = getDateRanges();
+  
+  // ALL-TIME metrics
+  const allOrders = orders;
+  const currentSales = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  // Revenue = sales (orders don't have a cost field)
+  const currentRevenue = currentSales;
+  
+  // Last month metrics for comparison
+  const lastMonthOrders = orders.filter(o => {
+    const date = new Date(o.createdAt);
+    return date >= lastMonthStart && date <= lastMonthEnd;
+  });
+  const lastMonthSales = lastMonthOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  // Revenue = sales for last month too
+  const lastMonthRevenue = lastMonthSales;
+  
+  // Calculate growth percentages
+  const salesGrowth = lastMonthSales > 0 
+    ? ((currentSales - lastMonthSales) / lastMonthSales) * 100 
+    : 0;
+  const revenueGrowth = lastMonthRevenue > 0 
+    ? ((currentRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+    : 0;
+  const ordersGrowth = lastMonthOrders.length > 0 
+    ? ((allOrders.length - lastMonthOrders.length) / lastMonthOrders.length) * 100 
+    : 0;
+  
+  return {
+    currentSales,
+    currentRevenue,
+    currentOrderCount: allOrders.length,
+    salesGrowth,
+    revenueGrowth,
+    ordersGrowth,
+    totalOrders: orders.length,
+    totalCustomers: customers.length,
+  };
+};
+
   const buildChartData = () => {
     const { currentMonthStart, now } = getDateRanges();
     const salesByDay: Record<string, number> = {};
     
-    // Initialize all days
     for (let d = new Date(currentMonthStart); d <= now; d.setDate(d.getDate() + 1)) {
       const key = new Date(d).toISOString().split("T")[0];
       salesByDay[key] = 0;
     }
     
-    // Aggregate orders
     orders.forEach((order) => {
       const orderDate = new Date(order.createdAt);
       if (orderDate >= currentMonthStart) {
@@ -137,7 +165,6 @@ const Analytics: React.FC = () => {
       }
     });
     
-    // Sort by ISO date FIRST, then format
     return Object.entries(salesByDay)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([isoDate, total]) => ({
@@ -189,9 +216,17 @@ const Analytics: React.FC = () => {
               <div className="mb-8">
                 <h1 className="text-white text-3xl font-bold mb-2">Analytics</h1>
                 <p className="text-[#939bc8] text-sm">
-                  Comparing current month vs. previous month
+                  All-time totals with last month comparison
                 </p>
               </div>
+
+              {error && (
+                <div className="mb-6 p-4 rounded-lg bg-red-600/20 border border-red-500/30 text-red-100">
+                  <p className="font-semibold">Error loading analytics</p>
+                  <p className="text-sm mt-1">{error}</p>
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-4 mb-8">
                 {loading ? (
                   <div className="text-center text-[#939bc8] py-12 w-full">
