@@ -16,7 +16,8 @@ async function handler(req, res) {
         .sort({ createdAt: -1 });
       res.json(orders);
     } catch (err) {
-      res.status(500).json({ error: "Failed to fetch orders" });
+      console.error("Get orders error:", err); // ← Log the actual error
+      res.status(500).json({ error: err.message }); // ← Return actual error message
     }
   } else if (req.method === "POST") {
     try {
@@ -79,7 +80,7 @@ async function handler(req, res) {
         payment: payment || "Unpaid",
         address: address || {},
         discount: discount || undefined,
-         total : calculatedTotal,
+        total: calculatedTotal,
       });
 
       await order.save();
