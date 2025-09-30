@@ -30,7 +30,7 @@ async function handler(req, res) {
         payment,
         address,
         discount,
-        total,
+        createdAt,
       } = req.body;
 
       if (!orderId || !products?.length) {
@@ -82,6 +82,7 @@ async function handler(req, res) {
         address: address || {},
         discount: discount || undefined,
         total: calculatedTotal,
+        ...(createdAt && { createdAt: new Date(createdAt) })
       });
 
       await order.save();

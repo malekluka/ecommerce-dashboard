@@ -267,6 +267,9 @@ const Orders: React.FC = () => {
     } else if (name === "discount") {
       setSelectedDiscountId(value || null);
       setForm(prev => ({ ...prev, discount: value }));
+    } else if (name === "createdAt") {
+      // Handle date without timezone conversion
+      setForm(prev => ({ ...prev, createdAt: value }));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
     }
@@ -310,33 +313,39 @@ const Orders: React.FC = () => {
         payment: form.payment,
         address: form.address,
         discount: selectedDiscountId || form.discount || null,
-        createdAt: form.createdAt
+        ...(form.createdAt && { createdAt: form.createdAt })
       };
 
       const method = editId ? "PUT" : "POST";
       const url = editId ? `${APP_LINK}/api/orders/${editId}` : `${APP_LINK}/api/orders`;
 
       // Check for changes if editing
-      if (editId) {
-        const oldOrder = orders.find(o => o._id === editId);
-        if (oldOrder) {
-          const hasChanges =
-            oldOrder.orderId !== form.orderId ||
-            (typeof oldOrder.customer === "string" ? oldOrder.customer : oldOrder.customer?._id || "") !== form.customer ||
-            oldOrder.status !== form.status ||
-            oldOrder.payment !== form.payment ||
-            (oldOrder.discount || "") !== (selectedDiscountId || form.discount || "") ||
-            JSON.stringify(oldOrder.products.map(p => ({
-              product: typeof p.product === "string" ? p.product : p.product._id,
-              quantity: p.quantity
-            }))) !== JSON.stringify(products);
+      // Check for changes if editing
+if (editId) {
+  const oldOrder = orders.find(o => o._id === editId);
+  if (oldOrder) {
+    // Normalize dates for comparison (convert to date strings)
+    const oldDate = oldOrder.createdAt ? new Date(oldOrder.createdAt).toISOString().slice(0, 10) : "";
+    const newDate = form.createdAt ? (form.createdAt.includes('T') ? new Date(form.createdAt).toISOString().slice(0, 10) : form.createdAt) : "";
+    
+    const hasChanges =
+      oldOrder.orderId !== form.orderId ||
+      (typeof oldOrder.customer === "string" ? oldOrder.customer : oldOrder.customer?._id || "") !== form.customer ||
+      oldOrder.status !== form.status ||
+      oldOrder.payment !== form.payment ||
+      (oldOrder.discount || "") !== (selectedDiscountId || form.discount || "") ||
+      oldDate !== newDate ||  // Add this line for date comparison
+      JSON.stringify(oldOrder.products.map(p => ({
+        product: typeof p.product === "string" ? p.product : p.product._id,
+        quantity: p.quantity
+      }))) !== JSON.stringify(products);
 
-          if (!hasChanges) {
-            setMessage({ type: "warning", text: "No changes detected" });
-            return;
-          }
-        }
-      }
+    if (!hasChanges) {
+      setMessage({ type: "warning", text: "No changes detected" });
+      return;
+    }
+  }
+}
 
       const response = await fetch(url, {
         method,
@@ -360,14 +369,7 @@ const Orders: React.FC = () => {
         });
 
         await fetchAllOrders();
-
-        if (editId) {
-          setTimeout(() => {
-            closeForm();
-          }, 1000);
-        } else {
-          closeForm();
-        }
+        closeForm();
       }
     } catch (err) {
       setMessage({
@@ -802,14 +804,7 @@ const Orders: React.FC = () => {
                                 ? new Date(form.createdAt).toISOString().slice(0, 10)
                                 : ""
                             }
-                            onChange={e =>
-                              setForm(f => ({
-                                ...f,
-                                createdAt: e.target.value
-                                  ? new Date(e.target.value).toISOString()
-                                  : "",
-                              }))
-                            }
+                            onChange={handleChange}
                             className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
                           />
                         </div>
@@ -854,6 +849,7 @@ const Orders: React.FC = () => {
                   </div>
                 </div>
               )}
+
 
               {/* Filters Section */}
               <div className="mb-8 p-6 bg-[#1a1e32] rounded-xl border border-[#343b65]">

@@ -25,10 +25,23 @@ async function handler(req, res) {
     }
   } else if (req.method === "PUT") {
     try {
-      const { orderId, status, payment, address, products, discount, total } =
-        req.body;
+      const {
+        orderId,
+        status,
+        payment,
+        address,
+        products,
+        discount,
+        total,
+        createdAt,
+      } = req.body;
 
       const updateData = { orderId, status, payment, address };
+
+      // Add createdAt if provided
+      if (createdAt) {
+        updateData.createdAt = new Date(createdAt);
+      }
 
       // If products are being updated, recalculate total
       if (products && products.length > 0) {
