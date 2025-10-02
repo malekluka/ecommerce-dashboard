@@ -48,7 +48,7 @@ const Analytics: React.FC = () => {
         setLoading(true);
         setError(null);
         const token = localStorage.getItem("token");
-        
+
         const [ordersRes, customersRes] = await Promise.all([
           fetch(`${APP_LINK}/api/orders`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -67,7 +67,7 @@ const Analytics: React.FC = () => {
 
         const ordersData = await ordersRes.json();
         const customersData = await customersRes.json();
-        
+
         setOrders(Array.isArray(ordersData) ? ordersData : []);
         setCustomers(Array.isArray(customersData) ? customersData : []);
       } catch (error) {
@@ -82,95 +82,121 @@ const Analytics: React.FC = () => {
     fetchData();
   }, []);
 
-  const getDateRanges = () => {
-    const now = new Date();
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-    
-    return { currentMonthStart, lastMonthStart, lastMonthEnd, now };
-  };
 
   const calculateMetrics = () => {
-  // Safety check for empty data
-  if (!Array.isArray(orders) || orders.length === 0) {
-    return {
-      currentSales: 0,
-      currentRevenue: 0,
-      currentOrderCount: 0,
-      salesGrowth: 0,
-      revenueGrowth: 0,
-      ordersGrowth: 0,
-      totalOrders: 0,
-      totalCustomers: Array.isArray(customers) ? customers.length : 0,
-    };
-  }
+    // Safety check for empty data
+    if (!Array.isArray(orders) || orders.length === 0) {
+      return {
+        currentSales: 0,
+        currentRevenue: 0,
+        currentOrderCount: 0,
+        salesGrowth: 0,
+        revenueGrowth: 0,
+        ordersGrowth: 0,
+        totalOrders: 0,
+        totalCustomers: Array.isArray(customers) ? customers.length : 0,
+      };
+    }
 
-  const { lastMonthStart, lastMonthEnd } = getDateRanges();
-  
-  // ALL-TIME metrics
-  const allOrders = orders;
-  const currentSales = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-  // Revenue = sales (orders don't have a cost field)
-  const currentRevenue = currentSales;
-  
-  // Last month metrics for comparison
-  const lastMonthOrders = orders.filter(o => {
-    const date = new Date(o.createdAt);
-    return date >= lastMonthStart && date <= lastMonthEnd;
-  });
-  const lastMonthSales = lastMonthOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-  // Revenue = sales for last month too
-  const lastMonthRevenue = lastMonthSales;
-  
-  // Calculate growth percentages
-  const salesGrowth = lastMonthSales > 0 
-    ? ((currentSales - lastMonthSales) / lastMonthSales) * 100 
-    : 0;
-  const revenueGrowth = lastMonthRevenue > 0 
-    ? ((currentRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
-    : 0;
-  const ordersGrowth = lastMonthOrders.length > 0 
-    ? ((allOrders.length - lastMonthOrders.length) / lastMonthOrders.length) * 100 
-    : 0;
-  
-  return {
-    currentSales,
-    currentRevenue,
-    currentOrderCount: allOrders.length,
-    salesGrowth,
-    revenueGrowth,
-    ordersGrowth,
-    totalOrders: orders.length,
-    totalCustomers: customers.length,
+    const now = new Date();
+    const last30DaysStart = new Date(now);
+    last30DaysStart.setDate(last30DaysStart.getDate() - 30);
+
+    const previous30DaysStart = new Date(now);
+    previous30DaysStart.setDate(previous30DaysStart.getDate() - 60);
+    const previous30DaysEnd = new Date(last30DaysStart);
+
+    // LAST 30 DAYS metrics
+    const last30DaysOrders = orders.filter(o => {
+      const date = new Date(o.createdAt);
+      return date >= last30DaysStart && date <= now;
+    });
+    const currentSales = last30DaysOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+    // Calculate actual revenue (sales - cost)
+    let currentRevenue = 0;
+    last30DaysOrders.forEach(order => {
+      if (order.products && Array.isArray(order.products)) {
+        order.products.forEach(item => {
+          if (typeof item.product === 'object' && item.product && 'cost' in item.product) {
+            const costPerItem = (item.product as { cost?: number }).cost || 0;
+            currentRevenue += ((item.product.price || 0) - costPerItem) * item.quantity;
+          }
+        });
+      }
+    });
+
+    // PREVIOUS 30 DAYS metrics for comparison
+    const previous30DaysOrders = orders.filter(o => {
+      const date = new Date(o.createdAt);
+      return date >= previous30DaysStart && date < previous30DaysEnd;
+    });
+    const previousSales = previous30DaysOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+    // Calculate actual revenue for previous period
+    let previousRevenue = 0;
+    previous30DaysOrders.forEach(order => {
+      if (order.products && Array.isArray(order.products)) {
+        order.products.forEach(item => {
+          if (typeof item.product === 'object' && item.product && 'cost' in item.product) {
+            const costPerItem = (item.product as { cost?: number }).cost || 0;
+            previousRevenue += ((item.product.price || 0) - costPerItem) * item.quantity;
+          }
+        });
+      }
+    });
+
+    // Calculate growth percentages
+    const salesGrowth = previousSales > 0
+      ? ((currentSales - previousSales) / previousSales) * 100
+      : 0;
+    const revenueGrowth = previousRevenue > 0
+      ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
+      : 0;
+    const ordersGrowth = previous30DaysOrders.length > 0
+      ? ((last30DaysOrders.length - previous30DaysOrders.length) / previous30DaysOrders.length) * 100
+      : 0;
+
+    return {
+      currentSales,
+      currentRevenue,
+      currentOrderCount: last30DaysOrders.length,
+      salesGrowth,
+      revenueGrowth,
+      ordersGrowth,
+      totalOrders: orders.length,
+      totalCustomers: customers.length,
+    };
   };
-};
 
   const buildChartData = () => {
-    const { currentMonthStart, now } = getDateRanges();
+    const now = new Date();
+    const last30DaysStart = new Date(now);
+    last30DaysStart.setDate(last30DaysStart.getDate() - 30);
+
     const salesByDay: Record<string, number> = {};
-    
-    for (let d = new Date(currentMonthStart); d <= now; d.setDate(d.getDate() + 1)) {
+
+    for (let d = new Date(last30DaysStart); d <= now; d.setDate(d.getDate() + 1)) {
       const key = new Date(d).toISOString().split("T")[0];
       salesByDay[key] = 0;
     }
-    
+
     orders.forEach((order) => {
       const orderDate = new Date(order.createdAt);
-      if (orderDate >= currentMonthStart) {
+      if (orderDate >= last30DaysStart) {
         const isoDate = orderDate.toISOString().split("T")[0];
         if (isoDate in salesByDay) {
           salesByDay[isoDate] += order.total || 0;
         }
       }
     });
-    
+
     return Object.entries(salesByDay)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([isoDate, total]) => ({
-        date: new Date(isoDate).toLocaleDateString("en-US", { 
-          month: "short", 
-          day: "numeric" 
+        date: new Date(isoDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric"
         }),
         total,
       }));
@@ -191,7 +217,6 @@ const Analytics: React.FC = () => {
       value: metrics.currentOrderCount.toString(),
       growth: metrics.ordersGrowth,
       showGrowth: true,
-      subtext: `${metrics.totalOrders} total`,
     },
     {
       label: "Revenue",
@@ -216,7 +241,7 @@ const Analytics: React.FC = () => {
               <div className="mb-8">
                 <h1 className="text-white text-3xl font-bold mb-2">Analytics</h1>
                 <p className="text-[#939bc8] text-sm">
-                  All-time totals with last month comparison
+                  All-time totals with last 30 days comparison
                 </p>
               </div>
 
@@ -252,11 +277,8 @@ const Analytics: React.FC = () => {
                           <span className={`text-base font-semibold ${stat.growth >= 0 ? "text-green-400" : "text-red-400"}`}>
                             {stat.growth >= 0 ? "↑" : "↓"} {Math.abs(stat.growth).toFixed(1)}%
                           </span>
-                          <span className="text-xs text-[#939bc8]">vs last month</span>
+                          <span className="text-xs text-[#939bc8]">vs previous 30 days</span>
                         </div>
-                      )}
-                      {stat.subtext && (
-                        <span className="text-xs text-[#939bc8]">{stat.subtext}</span>
                       )}
                     </div>
                   ))
@@ -264,7 +286,7 @@ const Analytics: React.FC = () => {
               </div>
               <div className="rounded-xl border border-[#343b65] bg-[#1a1e32] p-6">
                 <h2 className="text-white text-lg font-semibold mb-6">
-                  Sales Trend (This Month)
+                  Sales Trend (Last 30 Days)
                 </h2>
                 <div className="flex min-h-[180px] items-center justify-center w-full">
                   {loading ? (
@@ -278,14 +300,18 @@ const Analytics: React.FC = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={chartData}>
                         <CartesianGrid stroke="#343b65" strokeDasharray="3 3" />
+                        // Show every 3rd day label
                         <XAxis
                           dataKey="date"
                           stroke="#939bc8"
                           style={{ fontSize: '12px' }}
+                          interval="preserveStartEnd"  // Add this
+                          tick={{ fontSize: 11 }}
                         />
                         <YAxis
                           stroke="#939bc8"
                           style={{ fontSize: '12px' }}
+                          domain={[0, 'auto']}  // Add this - starts from 0
                         />
                         <Tooltip
                           contentStyle={{

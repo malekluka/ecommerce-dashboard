@@ -13,8 +13,7 @@ async function handler(req, res) {
     try {
       const order = await Order.findById(id)
         .populate("customer", "firstName lastName customerId")
-        .populate("products.product", "name price productId");
-
+        .populate("products.product", "name price cost productId");
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
@@ -81,8 +80,7 @@ async function handler(req, res) {
 
       const order = await Order.findByIdAndUpdate(id, updateData, { new: true })
         .populate("customer", "firstName lastName customerId")
-        .populate("products.product", "name price productId");
-
+        .populate("products.product", "name price cost productId");
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }

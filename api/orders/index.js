@@ -13,7 +13,7 @@ async function handler(req, res) {
     try {
       const orders = await Order.find()
         .populate("customer", "firstName lastName customerId")
-        .populate("products.product", "name price productId")
+        .populate("products.product", "name price cost productId")
         .sort({ createdAt: -1 });
       res.json(orders);
     } catch (err) {
@@ -82,15 +82,14 @@ async function handler(req, res) {
         address: address || {},
         discount: discount || undefined,
         total: calculatedTotal,
-        ...(createdAt && { createdAt: new Date(createdAt) })
+        ...(createdAt && { createdAt: new Date(createdAt) }),
       });
 
       await order.save();
 
       const populatedOrder = await Order.findById(order._id)
         .populate("customer", "firstName lastName customerId")
-        .populate("products.product", "name price productId");
-
+        .populate("products.product", "name price cost productId");
       res.status(201).json(populatedOrder);
     } catch (err) {
       res.status(500).json({ error: err.message });
