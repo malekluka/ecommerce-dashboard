@@ -191,9 +191,13 @@ const Orders: React.FC = () => {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          const now = new Date();
           setDiscounts(
-            data.filter((d: Discount) => new Date(d.endDate) > now)
+            data.filter((d: Discount) => {
+              const now = new Date();
+              const endDate = new Date(d.endDate);
+              const startDate = new Date(d.startDate);
+              return endDate > now && startDate <= now && (d.isActive !== false);
+            })
           );
         }
       }
@@ -321,31 +325,31 @@ const Orders: React.FC = () => {
 
       // Check for changes if editing
       // Check for changes if editing
-if (editId) {
-  const oldOrder = orders.find(o => o._id === editId);
-  if (oldOrder) {
-    // Normalize dates for comparison (convert to date strings)
-    const oldDate = oldOrder.createdAt ? new Date(oldOrder.createdAt).toISOString().slice(0, 10) : "";
-    const newDate = form.createdAt ? (form.createdAt.includes('T') ? new Date(form.createdAt).toISOString().slice(0, 10) : form.createdAt) : "";
-    
-    const hasChanges =
-      oldOrder.orderId !== form.orderId ||
-      (typeof oldOrder.customer === "string" ? oldOrder.customer : oldOrder.customer?._id || "") !== form.customer ||
-      oldOrder.status !== form.status ||
-      oldOrder.payment !== form.payment ||
-      (oldOrder.discount || "") !== (selectedDiscountId || form.discount || "") ||
-      oldDate !== newDate ||  // Add this line for date comparison
-      JSON.stringify(oldOrder.products.map(p => ({
-        product: typeof p.product === "string" ? p.product : p.product._id,
-        quantity: p.quantity
-      }))) !== JSON.stringify(products);
+      if (editId) {
+        const oldOrder = orders.find(o => o._id === editId);
+        if (oldOrder) {
+          // Normalize dates for comparison (convert to date strings)
+          const oldDate = oldOrder.createdAt ? new Date(oldOrder.createdAt).toISOString().slice(0, 10) : "";
+          const newDate = form.createdAt ? (form.createdAt.includes('T') ? new Date(form.createdAt).toISOString().slice(0, 10) : form.createdAt) : "";
 
-    if (!hasChanges) {
-      setMessage({ type: "warning", text: "No changes detected" });
-      return;
-    }
-  }
-}
+          const hasChanges =
+            oldOrder.orderId !== form.orderId ||
+            (typeof oldOrder.customer === "string" ? oldOrder.customer : oldOrder.customer?._id || "") !== form.customer ||
+            oldOrder.status !== form.status ||
+            oldOrder.payment !== form.payment ||
+            (oldOrder.discount || "") !== (selectedDiscountId || form.discount || "") ||
+            oldDate !== newDate ||  // Add this line for date comparison
+            JSON.stringify(oldOrder.products.map(p => ({
+              product: typeof p.product === "string" ? p.product : p.product._id,
+              quantity: p.quantity
+            }))) !== JSON.stringify(products);
+
+          if (!hasChanges) {
+            setMessage({ type: "warning", text: "No changes detected" });
+            return;
+          }
+        }
+      }
 
       const response = await fetch(url, {
         method,

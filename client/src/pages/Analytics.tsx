@@ -205,29 +205,38 @@ const Analytics: React.FC = () => {
   const metrics = calculateMetrics();
   const chartData = buildChartData();
 
-  const stats = [
+  interface StatCard {
+    label: string;
+    value: string;
+    growth?: number;
+    showGrowth: boolean;
+    subtext?: string;
+  }
+
+  const stats: StatCard[] = [
     {
-      label: "Total Sales",
+      label: "Sales (30d)",
       value: `$${metrics.currentSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       growth: metrics.salesGrowth,
       showGrowth: true,
     },
     {
-      label: "Orders",
+      label: "Orders (30d)",
       value: metrics.currentOrderCount.toString(),
       growth: metrics.ordersGrowth,
       showGrowth: true,
     },
     {
-      label: "Revenue",
+      label: "Revenue (30d)",
       value: `$${metrics.currentRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       growth: metrics.revenueGrowth,
       showGrowth: true,
     },
     {
-      label: "Customers",
+      label: "Total Customers",
       value: metrics.totalCustomers.toString(),
       showGrowth: false,
+      subtext: "All time",
     },
   ];
 
@@ -241,7 +250,7 @@ const Analytics: React.FC = () => {
               <div className="mb-8">
                 <h1 className="text-white text-3xl font-bold mb-2">Analytics</h1>
                 <p className="text-[#939bc8] text-sm">
-                  All-time totals with last 30 days comparison
+                  Last 30 days compared to previous 30 days
                 </p>
               </div>
 
@@ -273,12 +282,21 @@ const Analytics: React.FC = () => {
                         {stat.value}
                       </p>
                       {stat.showGrowth && stat.growth !== undefined && (
-                        <div className="flex items-center gap-2">
-                          <span className={`text-base font-semibold ${stat.growth >= 0 ? "text-green-400" : "text-red-400"}`}>
-                            {stat.growth >= 0 ? "↑" : "↓"} {Math.abs(stat.growth).toFixed(1)}%
-                          </span>
-                          <span className="text-xs text-[#939bc8]">vs previous 30 days</span>
+                        <div className="flex flex-col gap-1">
+                          {stat.growth === 0 ? (
+                            <span className="text-xs text-[#939bc8]">No prior data to compare</span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-base font-semibold ${stat.growth >= 0 ? "text-green-400" : "text-red-400"}`}>
+                                {stat.growth >= 0 ? "↑" : "↓"} {Math.abs(stat.growth).toFixed(1)}%
+                              </span>
+                              <span className="text-xs text-[#939bc8]">vs previous 30 days</span>
+                            </div>
+                          )}
                         </div>
+                      )}
+                      {stat.subtext && (
+                        <span className="text-xs text-[#939bc8]">{stat.subtext}</span>
                       )}
                     </div>
                   ))
@@ -300,7 +318,6 @@ const Analytics: React.FC = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={chartData}>
                         <CartesianGrid stroke="#343b65" strokeDasharray="3 3" />
-                        // Show every 3rd day label
                         <XAxis
                           dataKey="date"
                           stroke="#939bc8"
