@@ -28,46 +28,46 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate(); // moved inside component
 
   const decodeToken = (token: string) => {
-  try {
-    return jwtDecode<{ exp: number }>(token);
-  } catch {
-    return null; // Invalid token
-  }
-};
+    try {
+      return jwtDecode<{ exp: number }>(token);
+    } catch {
+      return null; // Invalid token
+    }
+  };
 
- useEffect(() => {
-  const token = localStorage.getItem("token");
-  
-  // 1. Check if token exists
-  if (!token) {
-    navigate("/login");
-    return;
-  }
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-  // 2. Decode token to check expiry (client-side check)
-  const decodedToken = decodeToken(token);
-  
-  // Add null check before accessing decodedToken.exp
-  if (!decodedToken || decodedToken.exp * 1000 < Date.now()) {
-    localStorage.removeItem("token");
-    navigate("/login");
-    return;
-  }
+    // 1. Check if token exists
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
-  // 3. Proceed with API calls if token is valid
-  axios.get("/api/auth/me", {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-    .then((res) => {
-      setAdminUsername(res.data.user.username);
+    // 2. Decode token to check expiry (client-side check)
+    const decodedToken = decodeToken(token);
+
+    // Add null check before accessing decodedToken.exp
+    if (!decodedToken || decodedToken.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token");
+      navigate("/login");
+      return;
+    }
+
+    // 3. Proceed with API calls if token is valid
+    axios.get("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` }
     })
-    .catch((err) => {
-      console.error("Error fetching user info", err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
-    });
+      .then((res) => {
+        setAdminUsername(res.data.user.username);
+      })
+      .catch((err) => {
+        console.error("Error fetching user info", err);
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
+      });
 
     Promise.all([
       fetch("/api/orders", {
@@ -98,10 +98,12 @@ const Dashboard: React.FC = () => {
             days[dateKey] += order.total;
           }
         });
-        const chartData = Object.entries(days).map(([date, total]) => ({
-          date: new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-          total,
-        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const chartData = Object.entries(days)
+          .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+          .map(([date, total]) => ({
+            date: new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+            total,
+          }));
         setSalesTrendData(chartData);
 
         setLoading(false);
@@ -136,49 +138,60 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 md:gap-4 p-2 md:p-4">
-              {/* Dashboard cards with real analytics */}
-              <div className="flex min-w-[140px] md:min-w-[158px] flex-1 flex-col gap-1 md:gap-2 rounded-xl p-4 md:p-6 border border-[#343b65]">
-                <p className="text-slate-300 md:text-base text-base font-medium leading-normal">
+            <div className="flex flex-wrap gap-4 p-4">
+              {/* Total Sales */}
+              <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 bg-[#1a1e32] border border-[#343b65]">
+                <p className="text-[#939bc8] text-sm font-medium">
                   Total Sales
                 </p>
-                <p className="text-white tracking-light text-xl md:text-2xl font-bold leading-tight">
+                <p className="text-white text-2xl font-bold">
                   {loading ? "..." : `$${totalSales.toLocaleString()}`}
                 </p>
               </div>
-              <div className="flex min-w-[140px] md:min-w-[158px] flex-1 flex-col gap-1 md:gap-2 rounded-xl p-4 md:p-6 border border-[#343b65]">
-                <p className="text-slate-300 md:text-base text-base font-medium leading-normal">
+
+              {/* Orders */}
+              <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 bg-[#1a1e32] border border-[#343b65]">
+                <p className="text-[#939bc8] text-sm font-medium">
                   Orders
                 </p>
-                <p className="text-white tracking-light text-xl md:text-2xl font-bold leading-tight">
+                <p className="text-white text-2xl font-bold">
                   {loading ? "..." : orderCount}
                 </p>
               </div>
-              <div className="flex min-w-[140px] md:min-w-[158px] flex-1 flex-col gap-1 md:gap-2 rounded-xl p-4 md:p-6 border border-[#343b65]">
-                <p className="text-slate-300 md:text-base text-base font-medium leading-normal">
+
+              {/* Revenue */}
+              <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 bg-[#1a1e32] border border-[#343b65]">
+                <p className="text-[#939bc8] text-sm font-medium">
                   Revenue
                 </p>
-                <p className="text-white tracking-light text-xl md:text-2xl font-bold leading-tight">
+                <p className="text-white text-2xl font-bold">
                   {loading ? "..." : `$${revenue.toLocaleString()}`}
                 </p>
               </div>
-              <div className="flex min-w-[140px] md:min-w-[158px] flex-1 flex-col gap-1 md:gap-2 rounded-xl p-4 md:p-6 border border-[#343b65]">
-                <p className="text-slate-300 md:text-base text-base font-medium leading-normal">
+
+              {/* Customers */}
+              <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 bg-[#1a1e32] border border-[#343b65]">
+                <p className="text-[#939bc8] text-sm font-medium">
                   Customers
                 </p>
-                <p className="text-white tracking-light text-xl md:text-2xl font-bold leading-tight">
+                <p className="text-white text-2xl font-bold">
                   {loading ? "..." : customerCount}
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-4 py-4 md:py-6">
-              <div className="flex min-w-0 flex-1 flex-col gap-1 md:gap-2 rounded-xl border border-[#343b65] p-4 md:p-6">
-                <p className="text-slate-300 md:text-base text-base font-medium leading-normal">
+            <div className="flex flex-wrap gap-4 px-4 py-6">
+              <div className="flex min-w-0 flex-1 flex-col gap-2 rounded-xl border border-[#343b65] bg-[#1a1e32] p-6">
+                <p className="text-[#939bc8] text-base font-medium">
                   Sales for the past 30 days
                 </p>
-                <div className="flex min-h-[120px] md:min-h-[180px] flex-1 flex-col gap-4 md:gap-8 py-2 md:py-4">
+                <div className="flex min-h-[180px] flex-1 flex-col gap-8 py-4">
                   {loading ? (
-                    <div className="text-white">Loading chart...</div>
+                    <div className="text-[#939bc8] flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0bda65]"></div>
+                        <span>Loading chart...</span>
+                      </div>
+                    </div>
                   ) : (
                     <ResponsiveContainer width="100%" height={180}>
                       <AreaChart data={salesTrendData}>
@@ -206,77 +219,73 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-            <h2 className="text-white text-lg md:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 md:px-4 pb-2 md:pb-3 pt-3 md:pt-5">
+            <h2 className="text-white text-[22px] font-bold px-4 pb-3 pt-5">
               Recent Orders
             </h2>
-            <div className="px-2 md:px-4 py-2 md:py-3 @container">
-              <div className="flex overflow-x-auto rounded-xl border border-[#343b65] bg-[#111422]">
-                <table className="flex-1 min-w-[600px]">
-                  <thead>
-                    <tr className="bg-[#1a1e32]">
-                      <th className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-120 px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
-                        Name
-                      </th>
-                      <th className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-240 px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
-                        Date
-                      </th>
-                      <th className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-360 px-4 py-3 text-left text-white w-60 text-sm font-medium leading-normal">
-                        Fulfillment Status
-                      </th>
-                      <th className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-480 px-4 py-3 text-left text-white w-60 text-sm font-medium leading-normal">
-                        Payment Status
-                      </th>
-                      <th className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-600 px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
-                        Total
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
+            <div className="px-4 py-3">
+              <div className="overflow-hidden rounded-xl border border-[#343b65] bg-[#1a1e32]">
+                <div className="overflow-x-auto">
+                  <table className="min-w-[600px] w-full">
+                    <thead className="bg-[#242a47]">
                       <tr>
-                        <td colSpan={5} className="text-center text-white py-4">Loading...</td>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">Name</th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">Date</th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">Status</th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">Payment</th>
+                        <th className="px-6 py-4 text-left text-white text-sm font-semibold">Total</th>
                       </tr>
-                    ) : (
-                      // Show 3 most recent orders
-                      [...orders]
-                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                        .slice(0, 3)
-                        .map((order) => (
-                          <tr key={order._id} className="border-t border-t-[#343b65]">
-                            <td className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-120 h-[72px] px-4 py-2 w-[400px] text-white text-sm font-normal leading-normal">
-                              {order.orderId ? `Order #${order.orderId}` : order._id}
-                            </td>
-                            <td className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-240 h-[72px] px-4 py-2 w-[400px] text-[#939bc8] text-sm font-normal leading-normal">
-                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "N/A"}
-                            </td>
-                            <td className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-360 h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                              <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#242a47] text-white text-sm font-medium leading-normal w-full">
-                                <span className="truncate">{order.status || "Unknown"}</span>
-                              </button>
-                            </td>
-                            <td className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-480 h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                              <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#242a47] text-white text-sm font-medium leading-normal w-full">
-                                <span className="truncate">{order.payment || "Unknown"}</span>
-                              </button>
-                            </td>
-                            <td className="table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-600 h-[72px] px-4 py-2 w-[400px] text-[#939bc8] text-sm font-normal leading-normal">
-                              {typeof order.total === "number" ? `$${order.total.toFixed(2)}` : "$0.00"}
-                            </td>
-                          </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#343b65]">
+                      {loading ? (
+                        <tr>
+                          <td colSpan={5} className="text-center text-[#939bc8] py-12">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0bda65]"></div>
+                              <span>Loading orders...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : orders.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="text-center text-[#939bc8] py-12">
+                            <div className="flex flex-col items-center gap-3">
+                              <span className="text-4xl">📦</span>
+                              <span>No orders yet</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        [...orders]
+                          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                          .slice(0, 3)
+                          .map((order) => (
+                            <tr key={order._id} className="hover:bg-[#1f2439] transition-colors">
+                              <td className="px-6 py-4 text-white font-medium">
+                                {order.orderId ? `Order #${order.orderId}` : order._id}
+                              </td>
+                              <td className="px-6 py-4 text-[#939bc8]">
+                                {order.createdAt ? new Date(order.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "N/A"}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#242a47] text-white border border-[#343b65]">
+                                  {order.status || "Unknown"}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#242a47] text-white border border-[#343b65]">
+                                  {order.payment || "Unknown"}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-[#0bda65] font-semibold">
+                                {typeof order.total === "number" ? `$${order.total.toFixed(2)}` : "$0.00"}
+                              </td>
+                            </tr>
+                          ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <style>
-                {`
-                  @container(max-width:120px){.table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-120{display: none;}}
-                  @container(max-width:240px){.table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-240{display: none;}}
-                  @container(max-width:360px){.table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-360{display: none;}}
-                  @container(max-width:480px){.table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-480{display: none;}}
-                  @container(max-width:600px){.table-bf1de0b8-7603-4c65-9746-4b9c74e6cddd-column-600{display: none;}}
-                `}
-              </style>
             </div>
           </main>
         </div>
