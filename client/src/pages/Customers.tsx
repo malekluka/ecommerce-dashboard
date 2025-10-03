@@ -132,52 +132,52 @@ const Customers: React.FC = () => {
   }, [isFormValid, formTouched]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setMessage(null);
-
-  if (!isFormValid) {
-    setFormTouched(true);
+    e.preventDefault();
     setMessage(null);
-    return;
-  }
 
-  const token = localStorage.getItem("token");
-  const method = editId ? "PUT" : "POST";
-  const url = editId ? `${APP_LINK}/api/customers/${editId}` : `${APP_LINK}/api/customers`;
-
-  const payload = { ...form };
-  if (editId && !form.password) {
-    delete payload.password;
-  }
-
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    if (data && data._id) {
-      setMessage({ type: "success", text: editId ? "Customer updated!" : "Customer added!" });
-      await fetchAllCustomers(); // ✅ Wait for fetch to complete
-      setTimeout(() => {
-        setShowForm(false);
-        setForm({ username: "", email: "", password: "", firstName: "", lastName: "", address: "", phone: "" });
-        setEditId(null);
-        setMessage(null);
-      }, 800);
-    } else {
-      setMessage({ type: "error", text: data.message || "Failed to save customer." });
+    if (!isFormValid) {
+      setFormTouched(true);
+      setMessage(null);
+      return;
     }
-  } catch {
-    setMessage({ type: "error", text: "Failed to save customer." });
-  }
-};
+
+    const token = localStorage.getItem("token");
+    const method = editId ? "PUT" : "POST";
+    const url = editId ? `${APP_LINK}/api/customers/${editId}` : `${APP_LINK}/api/customers`;
+
+    const payload = { ...form };
+    if (editId && !form.password) {
+      delete payload.password;
+    }
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (data && data._id) {
+        setMessage({ type: "success", text: editId ? "Customer updated!" : "Customer added!" });
+        await fetchAllCustomers(); // ✅ Wait for fetch to complete
+        setTimeout(() => {
+          setShowForm(false);
+          setForm({ username: "", email: "", password: "", firstName: "", lastName: "", address: "", phone: "" });
+          setEditId(null);
+          setMessage(null);
+        }, 800);
+      } else {
+        setMessage({ type: "error", text: data.message || "Failed to save customer." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Failed to save customer." });
+    }
+  };
 
   const handleEdit = (customer: Customer) => {
     setForm({
@@ -190,6 +190,8 @@ const Customers: React.FC = () => {
       phone: customer.phone || "",
     });
     setEditId(customer._id);
+    setShowForm(true);
+    setMessage(null);  // Add this line to clear any existing messages
   };
 
   const handleDelete = (id?: string) => {
@@ -240,23 +242,23 @@ const Customers: React.FC = () => {
   };
 
   // Helper to get field error messages
- const getFieldErrors = (form: Partial<Customer>, isEditing: boolean) => {
-  const errors: { [key: string]: string } = {};
-  if (!form.username?.trim()) errors.username = "Username is required.";
-  if (!form.email) errors.email = "Email is required.";
-  else {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) errors.email = "Email is invalid.";
-  }
-  if (!isEditing && !form.password) errors.password = "Password is required.";  // ✅ Pass as parameter
-  if (!form.firstName?.trim()) errors.firstName = "First name is required.";
-  if (!form.lastName?.trim()) errors.lastName = "Last name is required.";
-  if (!form.address?.trim()) errors.address = "Address is required.";
-  if (!form.phone) errors.phone = "Phone is required.";
-  return errors;
-};
+  const getFieldErrors = (form: Partial<Customer>, isEditing: boolean) => {
+    const errors: { [key: string]: string } = {};
+    if (!form.username?.trim()) errors.username = "Username is required.";
+    if (!form.email) errors.email = "Email is required.";
+    else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) errors.email = "Email is invalid.";
+    }
+    if (!isEditing && !form.password) errors.password = "Password is required.";  // ✅ Pass as parameter
+    if (!form.firstName?.trim()) errors.firstName = "First name is required.";
+    if (!form.lastName?.trim()) errors.lastName = "Last name is required.";
+    if (!form.address?.trim()) errors.address = "Address is required.";
+    if (!form.phone) errors.phone = "Phone is required.";
+    return errors;
+  };
 
-const fieldErrors = formTouched ? getFieldErrors(form, !!editId) : {};
+  const fieldErrors = formTouched ? getFieldErrors(form, !!editId) : {};
 
   return (
     <div className="relative flex min-h-screen flex-col bg-[#111422] font-sans">
@@ -295,8 +297,8 @@ const fieldErrors = formTouched ? getFieldErrors(form, !!editId) : {};
                     {message && (
                       <div
                         className={`mb-6 px-4 py-3 rounded-lg flex items-center justify-between ${message.type === "success"
-                            ? "bg-green-600/20 border border-green-500/30 text-green-100"
-                            : "bg-red-600/20 border border-red-500/30 text-red-100"
+                          ? "bg-green-600/20 border border-green-500/30 text-green-100"
+                          : "bg-red-600/20 border border-red-500/30 text-red-100"
                           }`}
                       >
                         <div className="flex items-center gap-2">
@@ -614,7 +616,7 @@ const fieldErrors = formTouched ? getFieldErrors(form, !!editId) : {};
                             <td className="px-6 py-4">
                               <div className="flex gap-3">
                                 <button
-                                  onClick={() => { handleEdit(customer); setShowForm(true); }}
+                                  onClick={() => handleEdit(customer)}
                                   className="p-2 rounded-lg bg-[#343b65] text-white text-sm font-medium transition-all duration-200 hover:bg-[#4751a3] hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65]"
                                   title="Edit customer"
                                 >

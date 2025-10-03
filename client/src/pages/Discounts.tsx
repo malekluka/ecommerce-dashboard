@@ -168,6 +168,8 @@ const Discounts: React.FC = () => {
       endDate: discount.endDate.slice(0, 10)
     });
     setEditId(discount._id || null);
+    setShowForm(true);
+    setMessage(null); // Add this line
   };
 
   const handleDelete = (id?: string) => {
@@ -230,96 +232,135 @@ const Discounts: React.FC = () => {
                 <h1 className="text-white text-3xl font-bold">Discounts</h1>
                 <button
                   className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#07b151] to-[#0bda65] text-white font-bold transition-all duration-200 hover:shadow-lg hover:shadow-[#07b151]/25 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65] active:scale-95"
-                  onClick={() => { setShowForm(true); setEditId(null); setForm({ code: '', percentage: 0, startDate: '', endDate: '' }); }}
+                  onClick={() => { setShowForm(true); setEditId(null); setForm({ code: '', percentage: 0, startDate: '', endDate: '' }); setMessage(null); }}
                 >
                   Add Discount
                 </button>
               </div>
               {/* Popup Form */}
               {showForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-[#1a1e32] p-8 rounded-xl shadow-2xl w-full max-w-lg relative">
-                    <button
-                      className="absolute top-2 right-2 text-white text-xl"
-                      onClick={() => { setShowForm(false); setMessage(null); setEditId(null); }}
-                      aria-label="Close"
-                    >
-                      ×
-                    </button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                  <div className="bg-[#1a1e32] p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 border border-[#343b65]">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-white text-2xl font-bold">
+                        {editId ? "Edit Discount" : "Add New Discount"}
+                      </h2>
+                      <button
+                        className="text-[#939bc8] hover:text-white transition-colors text-xl"
+                        onClick={() => { setShowForm(false); setMessage(null); setEditId(null); }}
+                        aria-label="Close form"
+                      >
+                        ×
+                      </button>
+                    </div>
                     {/* Success/Error message styled like Orders page */}
                     {message && (
                       <div
-                        className={`mb-4 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg border-l-4 ${message.type === "success"
-                          ? "bg-green-600 text-white border-green-300"
-                          : "bg-red-600 text-white border-red-300"
+                        className={`mb-6 px-4 py-3 rounded-lg flex items-center justify-between ${message.type === "success"
+                          ? "bg-green-600/20 border border-green-500/30 text-green-100"
+                          : "bg-red-600/20 border border-red-500/30 text-red-100"
                           }`}
                       >
-                        {message.type === "success" ? (
-                          <MdCheckCircle className="text-2xl" />
-                        ) : (
-                          <span className="material-icons">error</span>
-                        )}
-                        <span className="flex-1 font-semibold">{message.text}</span>
+                        <div className="flex items-center gap-2">
+                          {message.type === "success" ? (
+                            <MdCheckCircle className="text-2xl" />
+                          ) : (
+                            <span className="text-xl">⚠️</span>
+                          )}
+                          <span className="font-medium">{message.text}</span>
+                        </div>
                         <button
                           onClick={() => setMessage(null)}
-                          className="text-white hover:text-gray-200"
+                          className="ml-4 text-current hover:opacity-70 transition-opacity"
+                          aria-label="Dismiss message"
                         >
                           ×
                         </button>
                       </div>
                     )}
-                    <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end">
-                      <input
-                        ref={codeInputRef}
-                        type="text"
-                        name="code"
-                        placeholder="Code"
-                        value={form.code}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                        autoFocus={!editId}
-                      />
-                      <input
-                        type="number"
-                        name="percentage"
-                        placeholder="Percentage"
-                        value={form.percentage}
-                        onChange={handleChange}
-                        required
-                        min={1}
-                        max={100}
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={form.startDate}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={form.endDate}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      <div className="flex gap-2 justify-center mt-4 w-full">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Discount Code *
+                          </label>
+                          <input
+                            ref={codeInputRef}
+                            type="text"
+                            name="code"
+                            placeholder="Enter discount code"
+                            value={form.code}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                            autoFocus={!editId}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Percentage *
+                          </label>
+                          <input
+                            type="number"
+                            name="percentage"
+                            placeholder="Enter percentage (1-100)"
+                            value={form.percentage}
+                            onChange={handleChange}
+                            required
+                            min={1}
+                            max={100}
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Start Date *
+                          </label>
+                          <input
+                            type="date"
+                            name="startDate"
+                            value={form.startDate}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            End Date *
+                          </label>
+                          <input
+                            type="date"
+                            name="endDate"
+                            value={form.endDate}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 pt-4">
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded bg-[#07b151] text-white font-bold transition-all duration-150 hover:bg-[#0bda65] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65]"
+                          className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-[#07b151] to-[#0bda65] text-white font-bold transition-all duration-200 hover:shadow-lg hover:shadow-[#07b151]/25 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65]"
                           disabled={!isFormValid}
-                          title={isFormValid ? undefined : "Fill all fields correctly"}
+                          title={isFormValid ? undefined : "Please fill all fields correctly"}
                         >
-                          {editId ? 'Update' : 'Add'} Discount
+                          {editId ? 'Update Discount' : 'Add Discount'}
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setForm({ code: '', percentage: 0, startDate: '', endDate: '' }); setEditId(null); setShowForm(false); }}
-                          className="px-4 py-2 rounded bg-[#242a47] text-white font-bold border border-[#343b65] transition-all duration-150 hover:bg-[#343b65] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#939bc8]"
+                          onClick={() => {
+                            setForm({ code: '', percentage: 0, startDate: '', endDate: '' });
+                            setEditId(null);
+                            setShowForm(false);
+                            setMessage(null);
+                          }}
+                          className="flex-1 px-6 py-3 rounded-lg bg-[#242a47] text-white font-bold border border-[#343b65] transition-all duration-200 hover:bg-[#343b65] hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#939bc8]"
                         >
                           Cancel
                         </button>
