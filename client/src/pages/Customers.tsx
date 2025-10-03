@@ -131,51 +131,53 @@ const Customers: React.FC = () => {
     }
   }, [isFormValid, formTouched]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setMessage(null);
+
+  if (!isFormValid) {
+    setFormTouched(true);
     setMessage(null);
+    return;
+  }
 
-    if (!isFormValid) {
-      setFormTouched(true);
-      setMessage(null); // Don't show the old message
-      return;
-    }
+  const token = localStorage.getItem("token");
+  const method = editId ? "PUT" : "POST";
+  const url = editId ? `${APP_LINK}/api/customers/${editId}` : `${APP_LINK}/api/customers`;
 
-    const token = localStorage.getItem("token");
-    const method = editId ? "PUT" : "POST";
-    const url = editId ? `${APP_LINK}/api/customers/${editId}` : `${APP_LINK}/api/customers`;
+  const payload = { ...form };
+  if (editId && !form.password) {
+    delete payload.password;
+  }
 
-    // Prepare payload: omit password if editing and password is empty
-    const payload = { ...form };
-    if (editId && !form.password) {
-      delete payload.password;
-    }
-
-    fetch(url, {
+  try {
+    const res = await fetch(url, {
       method,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data._id) {
-          setMessage({ type: "success", text: editId ? "Customer updated!" : "Customer added!" });
-          fetchAllCustomers();
-          setTimeout(() => {
-            setShowForm(false);
-            setForm({ username: "", email: "", password: "", firstName: "", lastName: "", address: "", phone: "" });
-            setEditId(null);
-            setMessage(null);
-          }, 800);
-        } else {
-          setMessage({ type: "error", text: data.message || "Failed to save customer." });
-        }
-      })
-      .catch(() => setMessage({ type: "error", text: "Failed to save customer." }));
-  };
+    });
+
+    const data = await res.json();
+
+    if (data && data._id) {
+      setMessage({ type: "success", text: editId ? "Customer updated!" : "Customer added!" });
+      await fetchAllCustomers(); // ✅ Wait for fetch to complete
+      setTimeout(() => {
+        setShowForm(false);
+        setForm({ username: "", email: "", password: "", firstName: "", lastName: "", address: "", phone: "" });
+        setEditId(null);
+        setMessage(null);
+      }, 800);
+    } else {
+      setMessage({ type: "error", text: data.message || "Failed to save customer." });
+    }
+  } catch {
+    setMessage({ type: "error", text: "Failed to save customer." });
+  }
+};
 
   const handleEdit = (customer: Customer) => {
     setForm({
@@ -238,23 +240,23 @@ const Customers: React.FC = () => {
   };
 
   // Helper to get field error messages
-  const getFieldErrors = (form: Partial<Customer>) => {
-    const errors: { [key: string]: string } = {};
-    if (!form.username?.trim()) errors.username = "Username is required.";
-    if (!form.email) errors.email = "Email is required.";
-    else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(form.email)) errors.email = "Email is invalid.";
-    }
-    if (!editId && !form.password) errors.password = "Password is required.";
-    if (!form.firstName?.trim()) errors.firstName = "First name is required.";
-    if (!form.lastName?.trim()) errors.lastName = "Last name is required.";
-    if (!form.address?.trim()) errors.address = "Address is required.";
-    if (!form.phone) errors.phone = "Phone is required.";
-    return errors;
-  };
+ const getFieldErrors = (form: Partial<Customer>, isEditing: boolean) => {
+  const errors: { [key: string]: string } = {};
+  if (!form.username?.trim()) errors.username = "Username is required.";
+  if (!form.email) errors.email = "Email is required.";
+  else {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) errors.email = "Email is invalid.";
+  }
+  if (!isEditing && !form.password) errors.password = "Password is required.";  // ✅ Pass as parameter
+  if (!form.firstName?.trim()) errors.firstName = "First name is required.";
+  if (!form.lastName?.trim()) errors.lastName = "Last name is required.";
+  if (!form.address?.trim()) errors.address = "Address is required.";
+  if (!form.phone) errors.phone = "Phone is required.";
+  return errors;
+};
 
-  const fieldErrors = formTouched ? getFieldErrors(form) : {};
+const fieldErrors = formTouched ? getFieldErrors(form, !!editId) : {};
 
   return (
     <div className="relative flex min-h-screen flex-col bg-[#111422] font-sans">
@@ -274,134 +276,190 @@ const Customers: React.FC = () => {
               </div>
               {/* Popup Form */}
               {showForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-[#1a1e32] p-8 rounded-xl shadow-2xl w-full max-w-lg relative">
-                    <button
-                      className="absolute top-2 right-2 text-white text-xl"
-                      onClick={() => { setShowForm(false); setMessage(null); setEditId(null); }}
-                      aria-label="Close"
-                    >
-                      ×
-                    </button>
-                    {/* Success/Error message with icon, same as Orders */}
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                  <div className="bg-[#1a1e32] p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 border border-[#343b65]">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-white text-2xl font-bold">
+                        {editId ? "Edit Customer" : "Add New Customer"}
+                      </h2>
+                      <button
+                        className="text-[#939bc8] hover:text-white transition-colors text-xl"
+                        onClick={() => { setShowForm(false); setMessage(null); setEditId(null); }}
+                        aria-label="Close form"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    {/* Success/Error message */}
                     {message && (
                       <div
-                        className={`mb-4 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg border-l-4 ${message.type === "success"
-                          ? "bg-green-600 text-white border-green-300"
-                          : "bg-red-600 text-white border-red-300"
+                        className={`mb-6 px-4 py-3 rounded-lg flex items-center justify-between ${message.type === "success"
+                            ? "bg-green-600/20 border border-green-500/30 text-green-100"
+                            : "bg-red-600/20 border border-red-500/30 text-red-100"
                           }`}
                       >
-                        {message.type === "success" ? (
-                          <MdCheckCircle className="text-2xl" />
-                        ) : (
-                          <span className="material-icons">error</span>
-                        )}
-                        <span className="flex-1 font-semibold">{message.text}</span>
+                        <div className="flex items-center gap-2">
+                          {message.type === "success" ? (
+                            <MdCheckCircle className="text-2xl" />
+                          ) : (
+                            <span className="text-xl">⚠️</span>
+                          )}
+                          <span className="font-medium">{message.text}</span>
+                        </div>
                         <button
                           onClick={() => setMessage(null)}
-                          className="text-white hover:text-gray-200"
+                          className="ml-4 text-current hover:opacity-70 transition-opacity"
+                          aria-label="Dismiss message"
                         >
                           ×
                         </button>
                       </div>
                     )}
-                    <form onSubmit={handleSubmit} autoComplete="off" className="flex flex-wrap gap-4 items-end">
-                      <input
-                        ref={usernameInputRef}
-                        type="text"
-                        name="username"
-                        autoComplete="off"
-                        placeholder="Username"
-                        value={form.username || ""}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                        autoFocus={!editId}
-                      />
-                      <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={form.email || ""}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                        pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-                        title="Enter a valid email address"
-                      />
-                      <input
-                        type="password"
-                        name="password"
-                        autoComplete="new-password"
-                        placeholder={editId ? "New Password (optional)" : "Password"}
-                        value={form.password || ""}
-                        onChange={handleChange}
-                        required={!editId}
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      <input
-                        type="text"
-                        name="firstName"
-                        placeholder="First Name"
-                        value={form.firstName || ""}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      <input
-                        type="text"
-                        name="lastName"
-                        placeholder="Last Name"
-                        value={form.lastName || ""}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      <input
-                        type="text"
-                        name="address"
-                        placeholder="Address"
-                        value={form.address || ""}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      <input
-                        type="text"
-                        name="phone"
-                        placeholder="Phone"
-                        value={form.phone || ""}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 rounded bg-[#242a47] text-white w-full"
-                      />
-                      {/* Show specific field warnings after submit attempt */}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Username *
+                          </label>
+                          <input
+                            ref={usernameInputRef}
+                            type="text"
+                            name="username"
+                            autoComplete="off"
+                            placeholder="Enter username"
+                            value={form.username || ""}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                            autoFocus={!editId}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Email *
+                          </label>
+                          <input
+                            type="email"
+                            name="email"
+                            placeholder="Enter email address"
+                            value={form.email || ""}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                            pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                            title="Enter a valid email address"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Password {!editId && "*"}
+                          </label>
+                          <input
+                            type="password"
+                            name="password"
+                            autoComplete="new-password"
+                            placeholder={editId ? "New Password (optional)" : "Enter password"}
+                            value={form.password || ""}
+                            onChange={handleChange}
+                            required={!editId}
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            First Name *
+                          </label>
+                          <input
+                            type="text"
+                            name="firstName"
+                            placeholder="Enter first name"
+                            value={form.firstName || ""}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Last Name *
+                          </label>
+                          <input
+                            type="text"
+                            name="lastName"
+                            placeholder="Enter last name"
+                            value={form.lastName || ""}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                            Phone *
+                          </label>
+                          <input
+                            type="text"
+                            name="phone"
+                            placeholder="Enter phone number"
+                            value={form.phone || ""}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[#939bc8] text-sm font-medium mb-2">
+                          Address *
+                        </label>
+                        <input
+                          type="text"
+                          name="address"
+                          placeholder="Enter full address"
+                          value={form.address || ""}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-3 rounded-lg bg-[#242a47] text-white border border-[#343b65] focus:border-[#0bda65] focus:outline-none transition-colors"
+                        />
+                      </div>
+
+                      {/* Validation errors */}
                       {formTouched && !isFormValid && (
-                        <div className="w-full text-red-400 font-semibold text-sm text-left flex flex-col gap-1 mb-2">
-                          {Object.entries(fieldErrors).map(([field, msg]) => (
-                            <span key={field}>{msg}</span>
-                          ))}
+                        <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                          <div className="text-red-200 text-sm font-medium space-y-1">
+                            {Object.entries(fieldErrors).map(([field, msg]) => (
+                              <div key={field}>• {msg}</div>
+                            ))}
+                          </div>
                         </div>
                       )}
-                      <div className="flex gap-2 justify-center mt-4 w-full">
+
+                      <div className="flex gap-4 pt-4">
                         <button
                           type="submit"
-                          className={`px-4 py-2 rounded bg-[#07b151] text-white font-bold transition-all duration-150 hover:bg-[#0bda65] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65] ${!isFormValid ? "opacity-50" : ""
-                            }`}
-                          title={isFormValid ? undefined : "Fill all fields correctly"}
+                          className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-[#07b151] to-[#0bda65] text-white font-bold transition-all duration-200 hover:shadow-lg hover:shadow-[#07b151]/25 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0bda65]"
+                          disabled={!isFormValid && formTouched}
+                          title={isFormValid ? undefined : "Please fill all required fields"}
                         >
-                          {formTouched && !isFormValid ? (
-                            <span className="text-red-300 font-semibold text-sm">
-                              Please fill all fields correctly
-                            </span>
-                          ) : (
-                            <>{editId ? "Update" : "Add"} Customer</>
-                          )}
+                          {editId ? "Update Customer" : "Add Customer"}
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setShowForm(false); setEditId(null); setMessage(null); setForm({ username: "", email: "", password: "", firstName: "", lastName: "", address: "", phone: "" }); }}
-                          className="px-4 py-2 rounded bg-[#242a47] text-white font-bold border border-[#343b65] transition-all duration-150 hover:bg-[#343b65] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#939bc8]"
+                          onClick={() => {
+                            setShowForm(false);
+                            setEditId(null);
+                            setMessage(null);
+                            setForm({ username: "", email: "", password: "", firstName: "", lastName: "", address: "", phone: "" });
+                          }}
+                          className="flex-1 px-6 py-3 rounded-lg bg-[#242a47] text-white font-bold border border-[#343b65] transition-all duration-200 hover:bg-[#343b65] hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#939bc8]"
                         >
                           Cancel
                         </button>

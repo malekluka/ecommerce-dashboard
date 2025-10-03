@@ -1,34 +1,45 @@
-import connectDB from '../_lib/db.js';
-import Customer from '../_lib/models/Customer.js';
-import bcrypt from 'bcryptjs';
-import { corsMiddleware, authMiddleware } from '../_lib/auth.js';
+import connectDB from "../_lib/db.js";
+import Customer from "../_lib/models/Customer.js";
+import bcrypt from "bcryptjs";
+import { corsMiddleware, authMiddleware } from "../_lib/auth.js";
 
 async function handler(req, res) {
   await connectDB();
 
-  if (req.method === 'GET') {
+  if (req.method === "GET") {
     try {
-      const customers = await Customer.find().select('-password').sort({ createdAt: -1 });
+      const customers = await Customer.find()
+        .select("-password")
+        .sort({ createdAt: -1 });
       res.json(customers);
     } catch (err) {
-      console.error('Get customers error:', err);
-      res.status(500).json({ error: 'Failed to fetch customers' });
+      console.error("Get customers error:", err);
+      res.status(500).json({ error: "Failed to fetch customers" });
     }
-  } else if (req.method === 'POST') {
+  } else if (req.method === "POST") {
     try {
-      const { username, email, password, firstName, lastName, address, phone } = req.body;
+      const { username, email, password, firstName, lastName, address, phone } =
+        req.body;
 
-      if (!username || !email || !password || !firstName || !lastName || !address || !phone) {
+      if (
+        !username ||
+        !email ||
+        !password ||
+        !firstName ||
+        !lastName ||
+        !address ||
+        !phone
+      ) {
         return res.status(400).json({ error: "All fields are required" });
       }
 
       // Check if customer exists
-      const existingCustomer = await Customer.findOne({ 
-        $or: [{ email }, { username }] 
+      const existingCustomer = await Customer.findOne({
+        $or: [{ email }, { username }],
       });
-      
+
       if (existingCustomer) {
-        return res.status(400).json({ error: 'Customer already exists' });
+        return res.status(400).json({ error: "Customer already exists" });
       }
 
       // Generate customerId
@@ -53,17 +64,19 @@ async function handler(req, res) {
         firstName,
         lastName,
         address,
-        phone
+        phone,
       });
 
       await customer.save();
-      res.status(201).json({ message: 'Customer created successfully' });
+      // Remove password before sending response
+      const { password: _, ...customerData } = customer.toObject();
+      res.status(201).json(customerData); // Return the customer object
     } catch (err) {
-      console.error('Create customer error:', err);
-      res.status(500).json({ error: 'Failed to create customer' });
+      console.error("Create customer error:", err);
+      res.status(500).json({ error: "Failed to create customer" });
     }
   } else {
-    res.status(405).json({ message: 'Method not allowed' });
+    res.status(405).json({ message: "Method not allowed" });
   }
 }
 
