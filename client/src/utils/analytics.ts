@@ -1,19 +1,24 @@
 export type Order = {
   _id: string;
   orderId: string;
-  customer?: string | {
-    _id: string;
-    firstName?: string;
-    lastName?: string;
-    customerId?: string;
-  };
+  customer?:
+    | string
+    | {
+        _id: string;
+        firstName?: string;
+        lastName?: string;
+        customerId?: string;
+      };
   products: Array<{
-    product: string | {
-      _id: string;
-      name: string;
-      price: number;
-      productId?: string;
-    };
+    product:
+      | string
+      | {
+          _id: string;
+          name: string;
+          price: number;
+          productId?: string;
+          cost: number;
+        };
     quantity: number;
   }>;
   status: string;
@@ -40,10 +45,21 @@ export type Customer = {
 export function getAnalyticsStats(orders: Order[], customers: Customer[]) {
   const totalSales = orders.reduce((sum, o) => sum + (o.total || 0), 0);
   const orderCount = orders.length;
-  
+
   // Revenue = total sales (since we don't track order-level cost)
-  const revenue = totalSales;
-  
+  let revenue = 0;
+  orders.forEach((order) => {
+    if (order.products && Array.isArray(order.products)) {
+      order.products.forEach((item) => {
+        if (typeof item.product === "object" && item.product) {
+          const profit =
+            (item.product.price - (item.product.cost || 0)) * item.quantity;
+          revenue += profit;
+        }
+      });
+    }
+  });
+
   const customerCount = customers.length;
   return { totalSales, orderCount, revenue, customerCount };
 }

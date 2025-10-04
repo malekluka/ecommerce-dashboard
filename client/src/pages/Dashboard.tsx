@@ -16,6 +16,9 @@ import {
   Area,
 } from "recharts";
 
+const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
+
+
 const Dashboard: React.FC = () => {
   const [adminUsername, setAdminUsername] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -55,7 +58,7 @@ const Dashboard: React.FC = () => {
     }
 
     // 3. Proceed with API calls if token is valid
-    axios.get("/api/auth/me", {
+    axios.get(`${APP_LINK}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => {
@@ -70,10 +73,10 @@ const Dashboard: React.FC = () => {
       });
 
     Promise.all([
-      fetch("/api/orders", {
+      fetch(`${APP_LINK}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       }),
-      fetch("/api/customers", {
+      fetch(`${APP_LINK}/api/customers`, {
         headers: { Authorization: `Bearer ${token}` }
       })
     ])
@@ -85,9 +88,11 @@ const Dashboard: React.FC = () => {
 
         // --- Calculate sales trend from first day of current month through today ---
         const today = new Date();
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const last30Days = new Date(today);
+        last30Days.setDate(last30Days.getDate() - 30);
+
         const days: { [date: string]: number } = {};
-        for (let d = new Date(startOfMonth); d <= today; d.setDate(d.getDate() + 1)) {
+        for (let d = new Date(last30Days); d <= today; d.setDate(d.getDate() + 1)) {
           const key = new Date(d).toISOString().split("T")[0];
           days[key] = 0;
         }
