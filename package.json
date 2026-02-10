@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "E-commerce Dashboard with React frontend and Vercel Functions backend",
   "scripts": {
-    "dev": "vercel dev",
     "build": "vercel build",
     "deploy": "vercel --prod",
     "client:dev": "cd client && npm run dev",

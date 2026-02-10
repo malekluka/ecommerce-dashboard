@@ -1,6 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm install && cd client && npm install && npm run build",
-  "outputDirectory": "client/dist",
-  "installCommand": "npm install"
+  "outputDirectory": "client/dist"
 }
