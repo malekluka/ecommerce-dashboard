@@ -76,7 +76,7 @@ const Discounts: React.FC = () => {
     if (!token) {
       return;
     }
-    fetch(`${APP_LINK}/api/auth/me`, {
+    fetch(`${APP_LINK}/api/auth/auth?action=me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {

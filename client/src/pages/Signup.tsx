@@ -19,7 +19,7 @@ const Signup: React.FC = () => {
 	const [success, setSuccess] = useState<string | null>(null);
 	const navigate = useNavigate();
 
-    const APP_LINK = "https://malek-ecommerce-dashboard.vercel.app";
+  const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173"; 
 
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -53,7 +53,7 @@ const Signup: React.FC = () => {
 
 		setLoading(true);
 		try {
-			const res = await fetch(`${APP_LINK}/api/auth/signup`, {
+			const res = await fetch(`${APP_LINK}/api/auth/auth?action=signup`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, username, password }),

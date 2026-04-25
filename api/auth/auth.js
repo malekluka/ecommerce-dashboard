@@ -1,8 +1,8 @@
-import connectDB from '../_lib/db.js';
-import UserAdmin from '../_lib/models/UserAdmin.js';
+import connectDB from '../../_lib/db.js';
+import UserAdmin from '../../_lib/models/UserAdmin.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { authMiddleware } from '../_lib/auth.js';
+import { authMiddleware } from '../../_lib/auth.js';
 
 export default async function handler(req, res) {
   await connectDB();

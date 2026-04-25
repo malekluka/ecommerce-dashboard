@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       setCheckingAuth(false);
       return;
     }
-    fetch(`${APP_LINK}/api/auth/me`, {
+    fetch(`${APP_LINK}/api/auth/auth?action=login`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${APP_LINK}/api/auth/login`, {
+      const res = await fetch(`${APP_LINK}/api/auth/auth?action=login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

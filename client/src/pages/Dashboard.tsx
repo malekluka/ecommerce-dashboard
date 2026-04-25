@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
     }
 
     // 3. Proceed with API calls if token is valid
-    axios.get(`${APP_LINK}/api/auth/me`, {
+    axios.get(`${APP_LINK}/api/auth/auth?action=me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => {

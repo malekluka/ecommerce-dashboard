@@ -1,9 +1,36 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
+  "buildCommand": "cd client && npm install && npm run build",
+  "outputDirectory": "client/dist",
+  "functions": {
+    "api/auth/auth.js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/customers/index.js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/customers/[id].js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/discounts/index.js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/discounts/[id].js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/orders/index.js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/orders/[id].js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/products/index.js": {
+      "includeFiles": "_lib/**"
+    },
+    "api/products/[id].js": {
+      "includeFiles": "_lib/**"
     }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
