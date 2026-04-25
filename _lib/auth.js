@@ -1,3 +1,4 @@
+// api/auth.js - Remove corsMiddleware
 import jwt from 'jsonwebtoken';
 
 export function authMiddleware(handler) {
@@ -14,7 +15,7 @@ export function authMiddleware(handler) {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
-      req.userId = decoded.id; // For compatibility with your existing code
+      req.userId = decoded.id;
       
       return handler(req, res);
     } catch (err) {
@@ -26,17 +27,4 @@ export function authMiddleware(handler) {
   };
 }
 
-export function corsMiddleware(handler) {
-  return async (req, res) => {
-    // Handle CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
-    }
-    
-    return handler(req, res);
-  };
-}
+// Remove corsMiddleware completely - let vercel.json handle CORS

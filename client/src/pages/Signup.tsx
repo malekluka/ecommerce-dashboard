@@ -19,8 +19,7 @@ const Signup: React.FC = () => {
 	const [success, setSuccess] = useState<string | null>(null);
 	const navigate = useNavigate();
 
-	const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173"; 
-
+    const APP_LINK = "https://malek-ecommerce-dashboard.vercel.app";
 
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

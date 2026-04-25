@@ -1,9 +1,9 @@
-import connectDB from "../_lib/db.js";
-import Order from "../_lib/models/Order.js";
-import Product from "../_lib/models/Product.js";
-import Customer from "../_lib/models/Customer.js";
-import Discount from "../_lib/models/Discount.js";
-import { corsMiddleware, authMiddleware } from "../_lib/auth.js";
+import connectDB from "../../_lib/db.js";
+import Order from "../../_lib/models/Order.js";
+import Product from "../../_lib/models/Product.js";
+import Customer from "../../_lib/models/Customer.js";
+import Discount from "../../_lib/models/Discount.js";
+import { corsMiddleware, authMiddleware } from "../../_lib/auth.js";
 import mongoose from "mongoose";
 
 async function handler(req, res) {

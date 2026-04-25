@@ -1,4 +1,9 @@
 {
   "version": 2,
-  "outputDirectory": "client/dist"
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ]
 }
