@@ -4,8 +4,6 @@ import { MdCheckCircle, MdError, MdWarning } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts } from "../services/productService";
 
-// Add API configuration
-const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
 
 interface ProductRef {
   _id: string;
@@ -99,7 +97,7 @@ const Orders: React.FC = () => {
       return;
     }
 
-    fetch(`${APP_LINK}/api/auth/auth?action=me`, {
+    fetch('/api/auth/auth?action=me', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
@@ -123,7 +121,7 @@ const Orders: React.FC = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const res = await fetch(`${APP_LINK}/api/orders`, {
+      const res = await fetch('/api/orders', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -150,7 +148,7 @@ const Orders: React.FC = () => {
   const fetchCustomers = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${APP_LINK}/api/customers`, {
+      const res = await fetch('/api/customers', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -185,7 +183,7 @@ const Orders: React.FC = () => {
   const fetchDiscounts = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${APP_LINK}/api/discounts`, {
+      const res = await fetch('/api/discounts', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -321,7 +319,7 @@ const Orders: React.FC = () => {
       };
 
       const method = editId ? "PUT" : "POST";
-      const url = editId ? `${APP_LINK}/api/orders/${editId}` : `${APP_LINK}/api/orders`;
+      const url = editId ? `/api/orders/${editId}` : `/api/orders`;
 
       // Check for changes if editing
       // Check for changes if editing
@@ -432,7 +430,7 @@ const Orders: React.FC = () => {
   const confirmDelete = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${APP_LINK}/api/orders/${id}`, {
+      const response = await fetch(`/api/orders/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

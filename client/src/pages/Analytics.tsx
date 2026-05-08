@@ -12,8 +12,6 @@ import {
 import type { Order, Customer } from "../utils/analytics";
 import { useNavigate } from "react-router-dom";
 
-const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
-
 const Analytics: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -27,7 +25,7 @@ const Analytics: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch(`${APP_LINK}/api/auth/auth?action=me`, {
+    fetch('/api/auth/auth?action=me', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -50,10 +48,10 @@ const Analytics: React.FC = () => {
         const token = localStorage.getItem("token");
 
         const [ordersRes, customersRes] = await Promise.all([
-          fetch(`${APP_LINK}/api/orders`, {
+          fetch('/api/orders', {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${APP_LINK}/api/customers`, {
+          fetch('/api/customers', {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

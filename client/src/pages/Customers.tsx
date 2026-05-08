@@ -3,7 +3,6 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { MdCheckCircle } from "react-icons/md";
 
-const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
 
 interface Customer {
   _id: string;
@@ -53,7 +52,7 @@ const Customers: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch(`${APP_LINK}/api/auth/auth?action=me`, {
+    fetch('/api/auth/auth?action=me', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -73,7 +72,7 @@ const Customers: React.FC = () => {
   const fetchAllCustomers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${APP_LINK}/api/customers`, {
+      const response = await fetch('api/customers', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -143,7 +142,7 @@ const Customers: React.FC = () => {
 
     const token = localStorage.getItem("token");
     const method = editId ? "PUT" : "POST";
-    const url = editId ? `${APP_LINK}/api/customers/${editId}` : `${APP_LINK}/api/customers`;
+    const url = editId ? `/api/customers/${editId}` : `/api/customers`;
 
     const payload = { ...form };
     if (editId && !form.password) {
@@ -164,7 +163,7 @@ const Customers: React.FC = () => {
 
       if (data && data._id) {
         setMessage({ type: "success", text: editId ? "Customer updated!" : "Customer added!" });
-        await fetchAllCustomers(); // ✅ Wait for fetch to complete
+        await fetchAllCustomers(); 
         setTimeout(() => {
           setShowForm(false);
           setForm({ username: "", email: "", password: "", firstName: "", lastName: "", address: "", phone: "" });
@@ -201,7 +200,7 @@ const Customers: React.FC = () => {
 
   const confirmDelete = (id: string) => {
     const token = localStorage.getItem("token");
-    fetch(`${APP_LINK}/api/customers/${id}`, {
+    fetch(`/api/customers/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })

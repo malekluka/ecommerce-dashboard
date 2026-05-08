@@ -3,8 +3,6 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { MdCheckCircle } from "react-icons/md";
 
-const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
-
 
 interface Discount {
   _id?: string;
@@ -41,7 +39,7 @@ const Discounts: React.FC = () => {
   const fetchDiscounts = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${APP_LINK}/api/discounts`, {
+      const response = await fetch('/api/discounts', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -76,7 +74,7 @@ const Discounts: React.FC = () => {
     if (!token) {
       return;
     }
-    fetch(`${APP_LINK}/api/auth/auth?action=me`, {
+    fetch('/api/auth/auth?action=me', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -116,8 +114,8 @@ const Discounts: React.FC = () => {
       const token = localStorage.getItem("token");
       const method = editId ? 'PUT' : 'POST';
       const url = editId
-        ? `${APP_LINK}/api/discounts/${editId}`
-        : `${APP_LINK}/api/discounts`;
+        ? '/api/discounts/${editId}'
+        : '/api/discounts';
 
       const response = await fetch(url, {
         method,
@@ -180,7 +178,7 @@ const Discounts: React.FC = () => {
   const confirmDelete = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${APP_LINK}/api/discounts/${id}`, {
+      const response = await fetch(`/api/discounts/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

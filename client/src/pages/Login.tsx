@@ -13,15 +13,13 @@ const Login: React.FC = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
 
-  const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173"; 
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       setCheckingAuth(false);
       return;
     }
-    fetch(`${APP_LINK}/api/auth/auth?action=login`, {
+    fetch('/api/auth/auth?action=login', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -35,7 +33,6 @@ const Login: React.FC = () => {
         localStorage.removeItem("token");
         setCheckingAuth(false);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   if (checkingAuth) return null;
@@ -54,7 +51,7 @@ const Login: React.FC = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${APP_LINK}/api/auth/auth?action=login`, {
+      const res = await fetch('/api/auth/auth?action=login', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

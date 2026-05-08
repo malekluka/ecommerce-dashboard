@@ -19,8 +19,6 @@ const Signup: React.FC = () => {
 	const [success, setSuccess] = useState<string | null>(null);
 	const navigate = useNavigate();
 
-  const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173"; 
-
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 	// password rule checks (displayed live)
@@ -53,7 +51,7 @@ const Signup: React.FC = () => {
 
 		setLoading(true);
 		try {
-			const res = await fetch(`${APP_LINK}/api/auth/auth?action=signup`, {
+			const res = await fetch('/api/auth/auth?action=signup', {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, username, password }),

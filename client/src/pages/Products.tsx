@@ -4,8 +4,6 @@ import { fetchProducts, addProduct } from "../services/productService";
 import type { Product } from "../services/productService";
 import { useNavigate } from "react-router-dom";
 
-// Add API configuration
-const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -47,7 +45,7 @@ const Products: React.FC = () => {
       return;
     }
 
-    fetch(`${APP_LINK}/api/auth/auth?action=me`, {
+    fetch('/api/auth/auth?action=me', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -115,7 +113,7 @@ const Products: React.FC = () => {
       }
 
       if (editId) {
-        const response = await fetch(`${APP_LINK}/api/products/${editId}`, {
+        const response = await fetch(`/api/products/${editId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -207,7 +205,7 @@ const Products: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`${APP_LINK}/api/products/${id}`, {
+      const response = await fetch(`/api/products/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -16,9 +16,6 @@ import {
   Area,
 } from "recharts";
 
-const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
-
-
 const Dashboard: React.FC = () => {
   const [adminUsername, setAdminUsername] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -58,7 +55,7 @@ const Dashboard: React.FC = () => {
     }
 
     // 3. Proceed with API calls if token is valid
-    axios.get(`${APP_LINK}/api/auth/auth?action=me`, {
+    axios.get('/api/auth/auth?action=me', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => {
@@ -73,10 +70,10 @@ const Dashboard: React.FC = () => {
       });
 
     Promise.all([
-      fetch(`${APP_LINK}/api/orders`, {
+      fetch('/api/orders', {
         headers: { Authorization: `Bearer ${token}` }
       }),
-      fetch(`${APP_LINK}/api/customers`, {
+      fetch('/api/customers', {
         headers: { Authorization: `Bearer ${token}` }
       })
     ])
