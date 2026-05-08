@@ -1,7 +1,5 @@
 // src/services/productService.ts
 
-const APP_LINK = import.meta.env.VITE_APP_URL || "http://localhost:5173";
-
 
 export interface Product {
   productId?: string;
@@ -20,7 +18,7 @@ export interface Product {
 
 export const fetchProducts = async (): Promise<Product[]> => {
   const token = localStorage.getItem('token');
-  const response = await fetch(`${APP_LINK}/api/products`, {
+  const response = await fetch('/api/products', {
     headers: { Authorization: `Bearer ${token}` }
   });
   if (!response.ok) {
@@ -31,7 +29,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
 
 export const addProduct = async (product: Product) => {
   const token = localStorage.getItem('token');
-  const response = await fetch(`${APP_LINK}/api/products`, {
+  const response = await fetch('/api/products', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
