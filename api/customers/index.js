@@ -1,7 +1,7 @@
-import connectDB from "../_lib/db.js";
-import Customer from "../_lib/models/Customer.js";
+import connectDB from "../../_lib/db.js";
+import Customer from "../../_lib/models/Customer.js";
 import bcrypt from "bcryptjs";
-import { corsMiddleware, authMiddleware } from "../_lib/auth.js";
+import { corsMiddleware, authMiddleware } from "../../_lib/auth.js";
 
 async function handler(req, res) {
   await connectDB();

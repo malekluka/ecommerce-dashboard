@@ -1,5 +1,12 @@
 {
+  "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
+  "devCommand": "cd client && npm run dev",
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "_lib/**"
+    }
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

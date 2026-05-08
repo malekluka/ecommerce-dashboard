@@ -1,6 +1,6 @@
-import connectDB from '../_lib/db.js';
-import Product from '../_lib/models/Product.js';
-import { corsMiddleware, authMiddleware } from '../_lib/auth.js';
+import connectDB from '../../_lib/db.js';
+import Product from '../../_lib/models/Product.js';
+import { corsMiddleware, authMiddleware } from '../../_lib/auth.js';
 
 async function handler(req, res) {
   await connectDB();
