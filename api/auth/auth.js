@@ -1,13 +1,27 @@
-import connectDB from '../../_lib/db.js';
-import UserAdmin from '../../_lib/models/UserAdmin.js';
+import connectDB from '../_lib/db.js';
+import UserAdmin from '../_lib/models/UserAdmin.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { authMiddleware } from '../../_lib/auth.js';
+import { authMiddleware } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
+
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (req.headers['content-type']?.includes('application/json') && typeof req.body === 'string') {
+    req.body = JSON.parse(req.body);
+  }
   await connectDB();
 
   const { action } = req.query;
+
+    console.log('METHOD:', req.method);
+  console.log('ACTION:', action);
+  console.log('BODY:', req.body);
 
   // -------------------------
   // SIGNUP
