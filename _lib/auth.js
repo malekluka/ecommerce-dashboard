@@ -1,30 +1,39 @@
-  // api/auth.js - Remove corsMiddleware
-  import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
-  export function authMiddleware(handler) {
-    return async (req, res) => {
-      try {
-        const token = req.headers.authorization?.split(' ')[1];
-        
-        if (!token) {
-          return res.status(401).json({ 
-            success: false, 
-            message: 'Access denied. No token provided.' 
-          });
-        }
+export function corsMiddleware(handler) {
+  return async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    
+    return handler(req, res);
+  };
+}
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        req.userId = decoded.id;
-        
-        return handler(req, res);
-      } catch (err) {
+export function authMiddleware(handler) {
+  return async (req, res) => {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      
+      if (!token) {
         return res.status(401).json({ 
           success: false, 
-          message: 'Invalid token.' 
+          message: 'Access denied. No token provided.' 
         });
       }
-    };
-  }
 
-  // Remove corsMiddleware completely - let vercel.json handle CORS
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+      req.userId = decoded.id;
+      
+      return handler(req, res);
+    } catch (err) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid token.' 
+      });
+    }
+  };
+}
