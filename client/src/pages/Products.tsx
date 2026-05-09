@@ -134,24 +134,27 @@ const Products: React.FC = () => {
       }
 
       // Reset form and refresh data
-      setForm({
-        productId: "",
-        name: "",
-        price: undefined,
-        cost: undefined,
-        stock: undefined,
-        category: "",
-        image: "",
-      });
-      setEditId(null);
-      setShowForm(false);
+      setTimeout(() => {
+        setShowForm(false);
+        setEditId(null);
+        setForm({
+          productId: "",
+          name: "",
+          price: undefined,
+          cost: undefined,
+          stock: undefined,
+          category: "",
+          image: "",
+        });
+      }, 3000);
       await fetchAllProducts();
 
       // Scroll to new/updated item
       setTimeout(() => {
         if (tableRef.current) {
           const lastRow = tableRef.current.querySelector("tr:last-child");
-          if (lastRow) lastRow.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (lastRow)
+            lastRow.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 500);
     } catch (err) {
