@@ -14,7 +14,7 @@ async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const { name, description, price, cost, stock, category, productId } = req.body;
+      const { name, description, price, cost, stock, category, productId, image } = req.body;
 
       const existingProduct = await Product.findOne({ productId });
       if (existingProduct) {
@@ -22,7 +22,7 @@ async function handler(req, res) {
       }
 
       const product = new Product({
-        name, description, price, cost, stock, category, productId
+        name, description, price, cost, stock, category, productId, image
       });
 
       await product.save();

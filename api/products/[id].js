@@ -8,11 +8,11 @@ async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const { name, description, price, cost, stock, category, productId } = req.body;
+      const { name, description, price, cost, stock, category, productId, image } = req.body;
 
       const product = await Product.findByIdAndUpdate(
         id, 
-        { name, description, price, cost, stock, category, productId }, 
+        { name, description, price, cost, stock, category, productId , image }, 
         { new: true }
       );
       
