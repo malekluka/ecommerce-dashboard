@@ -7,6 +7,10 @@
     }
   },
   "rewrites": [
+    { "source": "/api/products/:id", "destination": "/api/products/[id]" },
+    { "source": "/api/customers/:id", "destination": "/api/customers/[id]" },
+    { "source": "/api/orders/:id", "destination": "/api/orders/[id]" },
+    { "source": "/api/discounts/:id", "destination": "/api/discounts/[id]" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
